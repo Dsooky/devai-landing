@@ -79,8 +79,9 @@ main,header,footer{position:relative;z-index:2}
   background:linear-gradient(140deg,var(--primary),var(--primary-deep))}
 
 /* ================= FLOATING PILL NAV ================= */
-.navwrap{position:fixed;top:44px;inset-inline:0;z-index:50;display:flex;justify-content:center;
-  padding-inline:24px;pointer-events:none}
+/* sticky, not fixed: the stamp panel expands above it and must push it down */
+.navwrap{position:sticky;top:10px;z-index:50;display:flex;justify-content:center;
+  padding:10px 24px 0;pointer-events:none}
 .nav{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;max-width:900px;height:56px;
   padding:0 8px 0 16px;border-radius:var(--r16);border:1px solid var(--border);
   background:color-mix(in srgb,var(--card) 72%,transparent);backdrop-filter:blur(12px)}
@@ -138,7 +139,7 @@ html[lang="ar"] h1,html[lang="ar"] h2,html[lang="ar"] h3{line-height:1.35;letter
 .chead h2{margin-inline:auto}.chead p{margin:16px auto 0;max-width:560px}
 
 /* ================= HERO ================= */
-#hero{padding:150px 0 0;text-align:center;overflow:hidden;min-height:100svh}
+#hero{padding:60px 0 0;text-align:center;overflow:hidden;min-height:100svh}
 .hglow{position:absolute;inset-inline-start:50%;top:-260px;width:1200px;height:760px;transform:translateX(-50%);
   background:radial-gradient(ellipse at center,var(--primary-dim),transparent 62%);pointer-events:none;user-select:none}
 .hbg{position:absolute;inset:0;overflow:hidden;pointer-events:none;user-select:none}
@@ -334,15 +335,83 @@ footer{padding-top:0}
   .scard{grid-template-columns:1fr}
   .faqrail{position:static}
   .nav .links{display:none}
-  .nav .links.open{display:flex;flex-direction:column;position:absolute;inset-inline:0;top:64px;
+  .nav .links.open{display:flex;flex-direction:column;position:absolute;inset-inline:0;top:74px;
     background:var(--card);border:1px solid var(--border);border-radius:var(--r16);padding:10px;gap:2px;margin:0}
   .burger{display:grid}
   .cbody{grid-template-columns:1fr}.cside{display:none}
   .fgrid{grid-template-columns:1fr 1fr}
-  .navwrap{top:12px}
-  #hero{padding-top:110px}
+  #hero{padding-top:40px}
 }
 @media(max-width:640px){.fgrid{grid-template-columns:1fr}.tchips span{border:0}}
+
+/* ===== Platforms Code guideline 12: digital stamp ===== */
+.stamp{background:var(--card);border-bottom:1px solid var(--border-2);font-size:12.5px;color:var(--paragraph)}
+.stamp-row{display:flex;align-items:center;gap:9px;min-height:38px;flex-wrap:wrap}
+.stamp-flag{width:18px;height:12px;flex:none;border-radius:2px;
+  background:linear-gradient(180deg,var(--primary-deep) 0%,var(--primary-deep) 100%)}
+.stamp-btn{background:none;border:0;font:inherit;color:var(--primary);cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px}
+.stamp-btn:hover{text-decoration:underline}
+.stamp-btn .chev{transition:transform .25s}
+.stamp-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.stamp-panel{border-top:1px solid var(--border-2);background:var(--elev);padding:18px 0}
+.stamp-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sp-item{display:flex;gap:11px;align-items:flex-start}
+.sp-ic{flex:none;width:30px;height:30px;border-radius:50%;background:var(--card);border:1px solid var(--border);
+  display:grid;place-items:center;color:var(--primary);font-size:13px}
+.sp-item b{display:block;color:var(--display);font-size:13px;font-weight:600;margin-bottom:3px}
+.sp-item p{font-size:12.5px;color:var(--muted);margin:0}
+.sp-reg{grid-column:1/-1;border-top:1px solid var(--border-2);padding-top:12px;display:flex;gap:8px;
+  align-items:center;flex-wrap:wrap;font-size:12.5px}
+.sp-reg .lic{color:var(--primary);font-family:"IBM Plex Mono",monospace;text-decoration:underline}
+.sp-reg .todo{color:var(--error);font-weight:600}
+
+/* ===== guideline 2: second nav header (utility bar) ===== */
+.utility{background:var(--body);border-bottom:1px solid var(--border-2);font-size:12.5px;color:var(--muted)}
+.utility .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px;flex-wrap:wrap}
+.u-left{display:flex;gap:8px;align-items:center}
+.u-right{display:flex;gap:4px;align-items:center}
+.ubtn{background:none;border:1px solid transparent;color:var(--muted);font:inherit;font-size:12.5px;
+  cursor:pointer;padding:5px 9px;border-radius:6px;min-height:30px}
+.ubtn:hover{color:var(--primary);border-color:var(--border)}
+.ubtn[aria-pressed="true"]{color:var(--primary);border-color:var(--primary-line);background:var(--primary-dim)}
+
+/* ===== guideline 7: feedback ===== */
+#feedback{padding:0;border-top:1px solid var(--border-2);background:var(--card)}
+.fb-row{display:flex;align-items:center;gap:12px;min-height:60px;flex-wrap:wrap}
+.fb-row .q{font-size:14.5px;color:var(--display);font-weight:500}
+.yn{min-height:34px;padding:0 18px;border-radius:6px;border:1px solid var(--primary);background:transparent;
+  color:var(--primary);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.yn:hover,.yn[aria-pressed="true"]{background:var(--primary);color:var(--on-primary)}
+.fb-stat{margin-inline-start:auto;font-size:12.5px;color:var(--muted)}
+.fb-panel{border-top:1px solid var(--border-2);padding:24px 0 30px}
+.fb-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.fb-panel legend{font-size:14px;font-weight:600;color:var(--display);margin-bottom:12px}
+.fb-panel .hint{font-weight:400;color:var(--muted);font-size:12.5px}
+.fb-opt{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14px;color:var(--paragraph);cursor:pointer}
+.fb-opt input{width:16px;height:16px;accent-color:var(--primary);cursor:pointer}
+.fb-panel textarea{width:100%;min-height:110px;background:var(--elev);border:1px solid var(--border);
+  border-radius:var(--r8);color:var(--display);font:inherit;font-size:14px;padding:11px 13px;resize:vertical}
+.fb-foot{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--muted)}
+.fb-foot a{color:var(--primary);text-decoration:underline}
+.fb-thanks{padding:18px 0;font-size:14px;color:var(--primary);font-weight:600}
+
+/* ===== guideline 8: footer requirements ===== */
+.f-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;padding:28px 0;
+  border-top:1px solid var(--border-2)}
+.f-meta h5{font-size:12.5px;font-weight:600;color:var(--display);margin-bottom:9px}
+.f-meta p,.f-meta a{font-size:14px;color:var(--muted);display:block;padding:2px 0}
+.f-meta a:hover{color:var(--primary)}
+.f-meta .unified{font-family:"IBM Plex Mono",monospace;font-size:17px;color:var(--display);letter-spacing:.04em}
+.a11y-row{display:flex;gap:7px}
+.a11y-row span{width:30px;height:30px;border:1px solid var(--border);border-radius:6px;display:grid;
+  place-items:center;color:var(--muted);font-size:13px}
+.f-dates{display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);padding-bottom:14px}
+.v2030{border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12.5px;
+  color:var(--muted);display:inline-block}
+@media(max-width:900px){.stamp-grid,.fb-grid{grid-template-columns:1fr}.f-meta{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 <body>
@@ -350,10 +419,42 @@ footer{padding-top:0}
 <a class="skip" href="#main">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 
-<div class="govbar"><div class="wrap">
-  <div class="ent"><span class="emblem" aria-hidden="true"></span>
-    <span data-i18n="gov">An official platform of the Saudi Data &amp; AI Authority</span></div>
-  <span data-i18n="internal">Internal use</span>
+<!-- Guideline 12: digital stamp. Replaces the previous lookalike "official platform" bar. -->
+<div class="stamp">
+  <div class="wrap stamp-row">
+    <span class="stamp-flag" aria-hidden="true"></span>
+    <span data-i18n="stampTxt">A government website registered with the Digital Government Authority.</span>
+    <button class="stamp-btn" id="stampBtn" aria-expanded="false" aria-controls="stampPanel">
+      <span data-i18n="stampHow">How do you know?</span><span class="chev" aria-hidden="true">⌄</span>
+    </button>
+  </div>
+  <div class="stamp-panel" id="stampPanel" hidden>
+    <div class="wrap stamp-grid">
+      <div class="sp-item"><span class="sp-ic" aria-hidden="true">⚿</span>
+        <div><b data-i18n="sp1h">Official Saudi government website URLs end with .gov.sa</b>
+        <p data-i18n="sp1p">The website belongs to an official government organization in the Kingdom of Saudi Arabia and always ends with .gov.sa</p></div></div>
+      <div class="sp-item"><span class="sp-ic" aria-hidden="true">🔒</span>
+        <div><b data-i18n="sp2h">Official secure websites use HTTPS</b>
+        <p data-i18n="sp2p">Secure government websites in the Kingdom of Saudi Arabia use HTTPS encryption.</p></div></div>
+      <div class="sp-reg">
+        <span data-i18n="spReg">Registered on Digital Government Authority:</span>
+        <!-- Supply the real DGA licence number. Deliberately not a plausible-looking number. -->
+        <span class="todo" data-i18n="spLic">LICENCE NUMBER REQUIRED</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Guideline 2: second nav header -->
+<div class="utility"><div class="wrap">
+  <div class="u-left mono"><span id="uDate"></span><span aria-hidden="true">·</span><span id="uTime"></span><span aria-hidden="true">·</span><span data-i18n="city">Riyadh</span></div>
+  <div class="u-right">
+    <button class="ubtn" id="fontDec" aria-label="Decrease text size">A−</button>
+    <button class="ubtn" id="fontRst" aria-label="Reset text size">A</button>
+    <button class="ubtn" id="fontInc" aria-label="Increase text size">A+</button>
+    <button class="ubtn" id="theme" aria-label="Switch to light mode">◐</button>
+    <button class="ubtn" id="lang" lang="ar">العربية</button>
+  </div>
 </div></div>
 
 <header>
@@ -367,8 +468,6 @@ footer{padding-top:0}
     </nav>
     <div class="act">
       <button class="ibtn burger" id="burger" aria-expanded="false" aria-controls="links" aria-label="Open menu">☰</button>
-      <button class="ibtn" id="lang" lang="ar">العربية</button>
-      <button class="ibtn" id="theme" aria-label="Switch to light mode">◐</button>
       <a href="#" class="btn btn-primary sm" data-i18n="cta">Open platform</a>
     </div>
   </div></div>
@@ -659,6 +758,37 @@ footer{padding-top:0}
 
 </main>
 
+
+<!-- Guideline 7: feedback section. Sits directly above the footer. -->
+<section id="feedback" aria-labelledby="fbq">
+  <div class="wrap fb-row">
+    <span class="q" id="fbq" data-i18n="fbQ">Was this page useful?</span>
+    <button class="yn" id="fbYes" aria-pressed="false" aria-expanded="false" aria-controls="fbPanel" data-i18n="fbYes">Yes</button>
+    <button class="yn" id="fbNo"  aria-pressed="false" aria-expanded="false" aria-controls="fbPanel" data-i18n="fbNo">No</button>
+    <span class="fb-stat" data-i18n="fbStat">Feedback is recorded for the platform team</span>
+  </div>
+  <div class="fb-panel" id="fbPanel" hidden>
+    <form class="wrap fb-grid" id="fbForm">
+      <fieldset style="border:0">
+        <legend data-i18n="fbWhy">Please tell us why <span class="hint" data-i18n="fbMulti">(you can select more than one)</span></legend>
+        <label class="fb-opt"><input type="checkbox" name="r" value="relevant"><span data-i18n="fbO1">The content is relevant</span></label>
+        <label class="fb-opt"><input type="checkbox" name="r" value="written"><span data-i18n="fbO2">It was well written</span></label>
+        <label class="fb-opt"><input type="checkbox" name="r" value="layout"><span data-i18n="fbO3">The layout made it easy to read</span></label>
+        <label class="fb-opt"><input type="checkbox" name="r" value="other"><span data-i18n="fbO4">Something else</span></label>
+      </fieldset>
+      <div>
+        <label class="legend" for="fbText" style="display:block;font-size:14px;font-weight:600;color:var(--display);margin-bottom:12px" data-i18n="fbMore">Anything else you would like to add</label>
+        <textarea id="fbText" name="text" data-i18n-ph="fbPh" placeholder="Your feedback"></textarea>
+      </div>
+      <div class="fb-foot">
+        <span data-i18n="fbLegal">For more information you may review the <a href="#">e-participation statement</a> and the <a href="#">rules of engagement</a>.</span>
+        <button type="submit" class="btn btn-primary" style="min-height:40px;padding:0 22px;font-size:14px" data-i18n="fbSubmit">Submit</button>
+      </div>
+    </form>
+    <div class="wrap fb-thanks" id="fbThanks" hidden data-i18n="fbThanks">Thank you. Your feedback has been recorded.</div>
+  </div>
+</section>
+
 <footer><div class="wrap">
   <div class="ctaslab">
     <div class="bgimg" aria-hidden="true">
@@ -685,8 +815,25 @@ footer{padding-top:0}
     <div class="fcol"><h4>Resources</h4><a href="#">Documentation</a><a href="#">Request a model</a><a href="#faq">FAQ</a><a href="#">Changelog</a></div>
     <div class="fcol"><h4>Support</h4><a href="#">Contact the team</a><a href="#">Status</a><a href="#">Report an issue</a></div>
   </div>
+  <div class="f-meta">
+    <div><h5 data-i18n="fContact">Contact us</h5>
+      <p class="unified">199099</p>
+      <a href="mailto:devai@sdaia.gov.sa">devai@sdaia.gov.sa</a></div>
+    <div><h5 data-i18n="fA11y">Accessibility tools</h5>
+      <div class="a11y-row" aria-hidden="true"><span>A</span><span>◐</span><span>👁</span></div>
+      <a href="#" data-i18n="fA11yState">Accessibility statement</a></div>
+    <div><h5 data-i18n="fSocial">Social media</h5>
+      <a href="#">X</a><a href="#">LinkedIn</a><a href="#">YouTube</a></div>
+    <div><h5 data-i18n="fMore">More</h5>
+      <a href="#" data-i18n="fSitemap">Sitemap</a><a href="#">RSS</a><a href="#" data-i18n="fOpenData">Open data</a></div>
+  </div>
+  <div class="f-dates">
+    <span><span data-i18n="fPageDate">Last modified date for the page</span>: <b class="mono" id="pageDate">2026-08-18</b></span>
+    <span><span data-i18n="fPlatDate">Last modified date for the platform</span>: <b class="mono" id="platDate">2026-08-18</b></span>
+    <span class="v2030" data-i18n="fVision">Saudi Vision 2030</span>
+  </div>
   <div class="fbot">
-    <span>© 2026 Saudi Data &amp; AI Authority. Internal use only.</span>
+    <span><span data-i18n="fRights">All rights reserved, Saudi Data &amp; AI Authority © 2026</span><br><span data-i18n="fMaint">Developed and maintained by SDAIA</span></span>
     <nav aria-label="Legal">
       <a href="#">Privacy policy</a><a href="#">Terms of use</a><a href="#">Accessibility statement</a>
         <span data-i18n="illus">Figures shown are illustrative</span>
@@ -928,8 +1075,72 @@ mbtn.addEventListener('click',()=>{
   syncM(); build(); ScrollTrigger.refresh();
 });
 
+
+/* ---------- guideline 12: digital stamp disclosure ---------- */
+(()=>{const b=document.getElementById('stampBtn'),p=document.getElementById('stampPanel');
+ b.addEventListener('click',()=>{const open=b.getAttribute('aria-expanded')==='true';
+  b.setAttribute('aria-expanded',String(!open)); p.hidden=open; ScrollTrigger.refresh();});})();
+
+/* ---------- guideline 2: utility bar clock, Riyadh time ---------- */
+(()=>{const d=document.getElementById('uDate'),t=document.getElementById('uTime');
+ const tick=()=>{const now=new Date(),loc=document.documentElement.lang==='ar'?'ar-SA-u-nu-latn':'en-GB';
+  const o={timeZone:'Asia/Riyadh'};
+  d.textContent=now.toLocaleDateString(loc,{...o,day:'2-digit',month:'short',year:'numeric'});
+  t.textContent=now.toLocaleTimeString(loc,{...o,hour:'2-digit',minute:'2-digit'});};
+ tick(); setInterval(tick,30000);})();
+
+/* ---------- accessibility tools: text size, persisted ---------- */
+(()=>{const KEY='devai-fs';
+ const apply=v=>{document.documentElement.style.fontSize=v+'%';
+   ['fontDec','fontRst','fontInc'].forEach(id=>document.getElementById(id).setAttribute('aria-pressed','false'));
+   if(v>100)document.getElementById('fontInc').setAttribute('aria-pressed','true');
+   if(v<100)document.getElementById('fontDec').setAttribute('aria-pressed','true');
+   localStorage.setItem(KEY,v); ScrollTrigger.refresh();};
+ let cur=+(localStorage.getItem(KEY)||100); if(cur!==100) apply(cur);
+ document.getElementById('fontDec').addEventListener('click',()=>apply(cur=Math.max(85,cur-7.5)));
+ document.getElementById('fontInc').addEventListener('click',()=>apply(cur=Math.min(130,cur+7.5)));
+ document.getElementById('fontRst').addEventListener('click',()=>apply(cur=100));})();
+
+/* ---------- guideline 7: feedback ---------- */
+(()=>{const yes=document.getElementById('fbYes'),no=document.getElementById('fbNo'),
+   panel=document.getElementById('fbPanel'),form=document.getElementById('fbForm'),
+   thanks=document.getElementById('fbThanks');
+ const open=which=>{
+   [yes,no].forEach(b=>{const on=b===which;
+     b.setAttribute('aria-pressed',String(on)); b.setAttribute('aria-expanded','true');});
+   panel.hidden=false; form.hidden=false; thanks.hidden=true; ScrollTrigger.refresh();};
+ yes.addEventListener('click',()=>open(yes));
+ no.addEventListener('click',()=>open(no));
+ form.addEventListener('submit',e=>{
+   e.preventDefault();               /* no endpoint yet: wire to the real service before launch */
+   form.hidden=true; thanks.hidden=false; ScrollTrigger.refresh();});})();
+
 /* ---------- Arabic / RTL ---------- */
 const AR={
+ stampTxt:'موقع حكومي مسجل لدى هيئة الحكومة الرقمية.',
+ stampHow:'كيف تعرف؟',
+ sp1h:'روابط المواقع الحكومية السعودية الرسمية تنتهي بـ gov.sa',
+ sp1p:'الموقع يتبع جهة حكومية رسمية في المملكة العربية السعودية، وينتهي دائمًا بـ gov.sa',
+ sp2h:'المواقع الحكومية الآمنة تستخدم HTTPS',
+ sp2p:'المواقع الحكومية الآمنة في المملكة العربية السعودية تستخدم تشفير HTTPS.',
+ spReg:'مسجل لدى هيئة الحكومة الرقمية:',
+ spLic:'رقم الترخيص مطلوب',
+ city:'الرياض',
+ fbQ:'هل كانت هذه الصفحة مفيدة؟',fbYes:'نعم',fbNo:'لا',
+ fbStat:'يتم تسجيل الملاحظات لفريق المنصة',
+ fbWhy:'أخبرنا بالسبب <span class="hint">(يمكنك اختيار أكثر من خيار)</span>',
+ fbMulti:'(يمكنك اختيار أكثر من خيار)',
+ fbO1:'المحتوى ذو صلة',fbO2:'كان مكتوبًا بشكل جيد',
+ fbO3:'التنسيق سهّل القراءة',fbO4:'شيء آخر',
+ fbMore:'هل ترغب في إضافة شيء آخر',fbPh:'ملاحظاتك',
+ fbLegal:'لمزيد من المعلومات يمكنك مراجعة <a href="#">بيان المشاركة الإلكترونية</a> و<a href="#">قواعد التفاعل</a>.',
+ fbSubmit:'إرسال',fbThanks:'شكرًا لك. تم تسجيل ملاحظاتك.',
+ fContact:'اتصل بنا',fA11y:'أدوات الوصول',fA11yState:'بيان إمكانية الوصول',
+ fSocial:'وسائل التواصل',fMore:'روابط أخرى',fSitemap:'خريطة الموقع',fOpenData:'البيانات المفتوحة',
+ fPageDate:'تاريخ آخر تحديث للصفحة',fPlatDate:'تاريخ آخر تحديث للمنصة',
+ fVision:'رؤية السعودية 2030',
+ fRights:'جميع الحقوق محفوظة، الهيئة السعودية للبيانات والذكاء الاصطناعي © 2026',
+ fMaint:'تم التطوير والتشغيل بواسطة سدايا',
  gov:'منصة رسمية تابعة للهيئة السعودية للبيانات والذكاء الاصطناعي',
  internal:'للاستخدام الداخلي',
  nav1:'المنصة',
@@ -1012,6 +1223,7 @@ const AR={
  illus:'الأرقام المعروضة توضيحية'
 };
 const EN={}; document.querySelectorAll('[data-i18n]').forEach(el=>EN[el.dataset.i18n]=el.innerHTML);
+const EN_PH={}; document.querySelectorAll('[data-i18n-ph]').forEach(el=>EN_PH[el.dataset.i18nPh]=el.placeholder);
 let ar=false;
 document.getElementById('lang').addEventListener('click',e=>{
   ar=!ar;
@@ -1020,6 +1232,10 @@ document.getElementById('lang').addEventListener('click',e=>{
   document.querySelectorAll('[data-i18n]').forEach(el=>{
     const v = ar?AR[el.dataset.i18n]:EN[el.dataset.i18n];
     if(v!==undefined){ el.innerHTML=v; delete el.dataset.split; }
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const v = ar?AR[el.dataset.i18nPh]:EN_PH[el.dataset.i18nPh];
+    if(v!==undefined) el.placeholder=v;
   });
   e.currentTarget.textContent=ar?'English':'العربية';
   e.currentTarget.lang=ar?'en':'ar';

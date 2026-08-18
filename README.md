@@ -44,6 +44,21 @@ sticky stacking cards, word-by-word blur reveals, clip-path media wipes, paralla
 counters, and edge-faded tickers. All horizontal motion is direction-aware and the
 timeline rebuilds when the language switches.
 
+## Platforms Code guidelines
+
+Checked against the DGA Platforms Code "Guidelines" deck (14 rules). Implemented:
+
+| # | Rule | Status |
+| --- | --- | --- |
+| 2 | Second nav header (date, time, city, accessibility tools) | Done |
+| 7 | Feedback section, "Was this page useful?" with reason panel | Done, needs an endpoint |
+| 8 | Footer: contact, accessibility tools, social, sitemap, RSS, rights, maintainer, both last-modified dates, Vision 2030 | Done, dates are static |
+| 12 | Digital stamp with DGA disclosure panel | Done, **licence number required** |
+| 13 | Ehsan element | Not applicable, optional and tied to Founding Day 2026 / Ramadan |
+
+Deliberately not applied: the Founding Day visual identity (sand palette, Founding Day
+mark). That is a seasonal campaign skin, wrong for a permanent product page.
+
 ## Before this ships
 
 1. **Replace the photography.** Everything in `img/` is placeholder, downloaded from
@@ -55,6 +70,10 @@ timeline rebuilds when the language switches.
 4. **Replace the console and statistics figures.** Numbers such as `18,430 requests`,
    `64% of budget`, `40%`, `100%`, `12 min` are illustrative, not measured.
 5. **Point the CTAs somewhere.** Every button currently links to `#`.
+6. **Supply the DGA licence number.** The digital stamp shows "LICENCE NUMBER REQUIRED"
+   in red rather than a plausible-looking placeholder, so it cannot be shipped by accident.
+7. **Wire the feedback form to a real endpoint.** It currently submits nothing.
+8. **Make the last-modified dates dynamic.** Both are hardcoded to the build date.
 
 ## Local preview
 
