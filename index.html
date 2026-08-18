@@ -376,7 +376,9 @@ footer{padding-top:0}
 
 <main id="main">
 
-<!-- ================= 01 HERO ================= -->
+<!-- ================= 01 HERO =================
+     The console below shows PLACEHOLDER audit data (timestamps, agents, verdicts).
+     It is a design mock, not a live feed. -->
 <section id="hero">
   <div class="hbg" aria-hidden="true">
     <img src="img/hero-kafd-skyline.jpg" alt="" fetchpriority="high">
@@ -605,7 +607,9 @@ footer{padding-top:0}
   </div>
 </div></div></section>
 
-<!-- ================= 09 NUMBERS ================= -->
+<!-- ================= 09 NUMBERS =================
+     PLACEHOLDER FIGURES. 40% / 100% / 12 min are illustrative, not measured.
+     Replace with real values or remove this section before publication. -->
 <section id="numbers"><div class="wrap"><div class="numbers">
   <div class="cell rv"><div class="n"><span class="num" data-to="40">0</span><span>%</span></div>
     <div class="lb" data-i18n="n1">Less time to first pull request</div><div class="cp" data-i18n="n1c">Measured across pilot teams</div></div>
@@ -615,7 +619,8 @@ footer{padding-top:0}
     <div class="lb" data-i18n="n3">To onboard a team</div><div class="cp" data-i18n="n3c">Sign in, pull the catalogue, start</div></div>
 </div></div></section>
 
-<!-- ================= 10 USE CASES ================= -->
+<!-- ================= 10 USE CASES =================
+     PLACEHOLDER adoption claims. No real team or delivery is described here. -->
 <section id="cases">
   <div class="wrap"><div class="chead">
     <span class="chip rv">Adoption</span>
@@ -684,6 +689,7 @@ footer{padding-top:0}
     <span>© 2026 Saudi Data &amp; AI Authority. Internal use only.</span>
     <nav aria-label="Legal">
       <a href="#">Privacy policy</a><a href="#">Terms of use</a><a href="#">Accessibility statement</a>
+        <span data-i18n="illus">Figures shown are illustrative</span>
       <button class="ibtn" id="motion" style="height:30px;font-size:12.5px" aria-pressed="false">Pause motion</button>
     </nav>
   </div>
@@ -699,8 +705,8 @@ const DIR = () => document.documentElement.dir === 'rtl' ? -1 : 1;
 const motionOff = () => document.documentElement.dataset.motion === 'off';
 
 /* ---------- repeated content ---------- */
-const ENTITIES = ['Ministry Platforms','National Data Bank','Digital Services','Statistics Authority',
-                  'Health Data','Identity Services','Municipal Systems','Customs Platform'];
+const ENTITIES = ['Ministry platforms','Municipal services','Health services',
+                  'Statistics','Digital identity','Customs','Education','Transport'];
 const INT1 = ['VS Code','JetBrains','GitHub Enterprise','GitLab','Jira','Jenkins'];
 const INT2 = ['Azure DevOps','Bitbucket','Confluence','Grafana','Vault','Kubernetes'];
 const CASES = [
@@ -955,7 +961,8 @@ const AR={
  ucH:'قيد التشغيل بالفعل عبر المؤسسة.',
  inH:'تتكامل مع الأدوات التي تستخدمها فرقك.',
  fqH:'أسئلة وإجابات.',fqB:'تواصل مع فريق المنصة',
- ctaH:'جاهز لمنح مطوريك ذكاءً اصطناعيًا محوكمًا؟'
+ ctaH:'جاهز لمنح مطوريك ذكاءً اصطناعيًا محوكمًا؟',
+ illus:'الأرقام المعروضة توضيحية'
 };
 const EN={}; document.querySelectorAll('[data-i18n]').forEach(el=>EN[el.dataset.i18n]=el.innerHTML);
 let ar=false;
