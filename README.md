@@ -51,7 +51,7 @@ timeline rebuilds when the language switches.
    and share-alike licensing. Use official SDAIA photography instead.
 2. **Write the six FAQ answers.** They are placeholders and this is the highest-leverage
    copy on the page.
-3. **Have a native speaker review the Arabic.** The translation is a first pass.
+3. **Have a native speaker review the Arabic.** All 80 strings are translated, but the wording is a first pass and needs a fluent reviewer.
 4. **Replace the console and statistics figures.** Numbers such as `18,430 requests`,
    `64% of budget`, `40%`, `100%`, `12 min` are illustrative, not measured.
 5. **Point the CTAs somewhere.** Every button currently links to `#`.
