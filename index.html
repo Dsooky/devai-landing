@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dev AI · SDAIA</title>
+<meta name="description" content="Dev AI gives SDAIA teams approved models, agents, and tools inside their own IDE, while models, data, and policy stay governed in one place.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- IMAGE LICENCE NOTE
+     Photography in /img is PLACEHOLDER, downloaded from Wikimedia Commons:
+     Riyadh skyline, KAFD, Al-Masmak Fortress, Riyadh Metro (KAFD station), At-Turaif
+     in Diriyah, King Salman Park, Ministry of Finance, Ministry of Education, and the
+     Uruq Bani Ma'arid reserve. Most are CC BY-SA 4.0, which requires visible attribution
+     and share-alike licensing of the derivative.
+     Before launch: replace with official SDAIA photography, or add the required
+     attribution for every file retained. -->
+<style>
+/* ============================================================
+   Dev AI · SDAIA
+   Tokens: DGA "Platforms Code", read from the published registry.
+   Layout + motion: patterns shared across the five reference sites.
+   ============================================================ */
+:root,html[data-theme="dark"]{
+  --body:#111927; --card:#1f2a37; --elev:#232f3d; --neutral-200:#4d5761;
+  --display:#f9fafb; --paragraph:#c3cad3; --muted:#8f98a3;
+  --border:#384250; --border-2:#2b3542;
+  --primary:#54c08a; --primary-strong:#88d8ad; --primary-deep:#1b8354;
+  --primary-dim:rgba(84,192,138,.12); --primary-line:rgba(84,192,138,.28);
+  --on-primary:#06231a;
+  --error:#f97066;
+  --r8:8px; --r16:16px; --r24:24px; --rfull:9999px;
+  --max:1220px; --section-y:120px;
+}
+html[data-theme="light"]{
+  --body:#f9fafb; --card:#ffffff; --elev:#f3f4f6; --neutral-200:#e5e7eb;
+  --display:#1f2a37; --paragraph:#384250; --muted:#6c727e;
+  --border:#e5e7eb; --border-2:#eef0f2;
+  --primary:#1b8354; --primary-strong:#166a45; --primary-deep:#14573a;
+  --primary-dim:#f3fcf6; --primary-line:#b8eacb;
+  --on-primary:#ffffff;
+  --error:#d92c20;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:clip;scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;background:var(--body);color:var(--display);
+  line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+:where(section,[id]){scroll-margin-block-start:140px}
+
+/* word-level split only. Character splitting breaks Arabic cursive joining. */
+.w-outer{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.14em}
+.w{display:inline-block;will-change:transform,filter}
+
+/* focus: double ring so it reads on cards and on photos */
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px;
+  box-shadow:0 0 0 4px var(--body);border-radius:6px}
+.skip{position:fixed;inset-inline-start:12px;top:-80px;z-index:400;background:var(--primary);
+  color:var(--on-primary);padding:12px 20px;border-radius:var(--r8);font-weight:600;transition:top .2s}
+.skip:focus{top:12px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.wrap{max-width:var(--max);margin:0 auto;padding-inline:24px}
+
+/* film grain, below content so it never touches type */
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;user-select:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+main,header,footer{position:relative;z-index:2}
+
+/* ================= GOV BAR ================= */
+.govbar{background:var(--card);border-bottom:1px solid var(--border-2);font-size:12.5px;color:var(--muted)}
+.govbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:38px;flex-wrap:wrap}
+.govbar .ent{display:flex;align-items:center;gap:9px}
+.govbar .emblem{width:16px;height:16px;flex:none;border-radius:3px;
+  background:linear-gradient(140deg,var(--primary),var(--primary-deep))}
+
+/* ================= FLOATING PILL NAV ================= */
+.navwrap{position:fixed;top:44px;inset-inline:0;z-index:50;display:flex;justify-content:center;
+  padding-inline:24px;pointer-events:none}
+.nav{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;max-width:900px;height:56px;
+  padding:0 8px 0 16px;border-radius:var(--r16);border:1px solid var(--border);
+  background:color-mix(in srgb,var(--card) 72%,transparent);backdrop-filter:blur(12px)}
+@supports not (backdrop-filter:blur(12px)){.nav{background:var(--card)}}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;white-space:nowrap;flex:none}
+.brand i{width:24px;height:24px;border-radius:7px;flex:none;
+  background:linear-gradient(140deg,var(--primary),var(--primary-deep))}
+.nav .links{display:flex;gap:2px;margin-inline:auto}
+.nav .links a{padding:8px 13px;border-radius:10px;color:var(--paragraph);font-size:14.5px;font-weight:500;transition:.2s}
+.nav .links a:hover{color:var(--display);background:var(--elev)}
+.nav .act{display:flex;align-items:center;gap:6px;flex:none}
+.ibtn{height:38px;min-width:38px;padding:0 11px;border:1px solid var(--border);background:transparent;
+  border-radius:10px;color:var(--paragraph);font:inherit;font-size:13.5px;font-weight:500;cursor:pointer;transition:.2s}
+.ibtn:hover{border-color:var(--primary);color:var(--primary)}
+.burger{display:none}
+
+/* ================= BUTTONS ================= */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;
+  padding:0 26px;border-radius:var(--rfull);font-size:15.5px;font-weight:600;border:1px solid transparent;
+  cursor:pointer;font-family:inherit;overflow:hidden;transition:background .2s,border-color .2s,color .2s}
+.btn.sm{min-height:38px;padding:0 16px;font-size:14px;border-radius:10px}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-primary:hover{background:var(--primary-strong)}
+.btn-ghost{border-color:var(--border);color:var(--display)}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+/* label travel on hover, not a colour change */
+.btn .lbl{display:inline-block;transition:transform .38s cubic-bezier(.16,1,.3,1)}
+.btn:hover .lbl{transform:translateX(-4px)}
+.btn .arw{display:inline-block;transition:transform .38s cubic-bezier(.16,1,.3,1)}
+.btn:hover .arw{transform:translateX(4px)}
+html[dir="rtl"] .btn:hover .lbl{transform:translateX(4px)}
+html[dir="rtl"] .btn:hover .arw{transform:translateX(-4px)}
+
+/* ================= TYPE ================= */
+section{padding:var(--section-y) 0;position:relative}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:var(--rfull);
+  background:var(--primary-dim);border:1px solid var(--primary-line);font-size:12px;color:var(--primary);
+  font-weight:500;margin-bottom:22px}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--primary);flex:none}
+h1{font-size:clamp(36px,5.6vw,60px);line-height:1.08;letter-spacing:-.03em;font-weight:600;color:var(--display)}
+h2{font-size:clamp(28px,3.6vw,40px);line-height:1.15;letter-spacing:-.02em;font-weight:600;color:var(--display);max-width:640px}
+h3{font-size:clamp(20px,2vw,24px);line-height:1.3;letter-spacing:-.01em;font-weight:600;color:var(--display)}
+p{color:var(--paragraph);font-size:17px}
+.dim{color:var(--paragraph)}
+.small{font-size:15px;color:var(--paragraph)}
+.cap{font-size:12px;color:var(--muted)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+html[lang="ar"] p,html[lang="ar"] .small{line-height:1.85}
+html[lang="ar"] h1,html[lang="ar"] h2,html[lang="ar"] h3{line-height:1.35;letter-spacing:0}
+
+/* split section header */
+.shead{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:52px;flex-wrap:wrap}
+.shead p{max-width:380px;text-wrap:balance}
+.chead{text-align:center;max-width:720px;margin:0 auto 52px}
+.chead h2{margin-inline:auto}.chead p{margin:16px auto 0;max-width:560px}
+
+/* ================= HERO ================= */
+#hero{padding:150px 0 0;text-align:center;overflow:hidden;min-height:100svh}
+.hglow{position:absolute;inset-inline-start:50%;top:-260px;width:1200px;height:760px;transform:translateX(-50%);
+  background:radial-gradient(ellipse at center,var(--primary-dim),transparent 62%);pointer-events:none;user-select:none}
+.hbg{position:absolute;inset:0;overflow:hidden;pointer-events:none;user-select:none}
+.hbg img{width:100%;height:100%;object-fit:cover;object-position:center top;opacity:.16}
+.hbg::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 0%,var(--body) 66%)}
+/* layered dune silhouettes */
+.dunes{position:absolute;inset-inline:-160px;bottom:0;height:340px;pointer-events:none;user-select:none}
+.dunes svg{position:absolute;inset-inline:0;bottom:0;width:100%}
+#hero .wrap{position:relative;z-index:3}
+#hero h1{max-width:15ch;margin:0 auto}
+#hero .lead{font-size:18px;color:var(--paragraph);max-width:52ch;margin:22px auto 0;text-wrap:balance}
+.hcta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.tchips{display:flex;justify-content:center;gap:0;flex-wrap:wrap;margin-top:26px;color:var(--muted);font-size:13px}
+.tchips span{padding:0 18px;border-inline-end:1px solid var(--border)}
+.tchips span:last-child{border:0}
+
+/* ---- hero console: rounded top only, rises into frame ---- */
+.console{max-width:1060px;margin:64px auto 0;border:1px solid var(--border);border-bottom:0;
+  border-radius:var(--r16) var(--r16) 0 0;background:var(--card);padding:8px 8px 0;text-align:start;
+  box-shadow:0 -1px 0 rgba(255,255,255,.03) inset}
+.console .inner{border:1px solid var(--border-2);border-bottom:0;border-radius:var(--r8) var(--r8) 0 0;
+  background:var(--body);overflow:hidden}
+.cbar{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border-2);background:var(--elev)}
+.cdot{width:9px;height:9px;border-radius:50%;background:var(--neutral-200)}
+.cbar .url{margin-inline-start:10px;font-size:12px;color:var(--muted)}
+.cbody{display:grid;grid-template-columns:190px 1fr;min-height:330px}
+.cside{border-inline-end:1px solid var(--border-2);padding:14px 10px;display:grid;gap:2px;align-content:start}
+.cside a{padding:8px 11px;border-radius:8px;font-size:13.5px;color:var(--muted)}
+.cside a.on{background:var(--primary-dim);color:var(--primary);font-weight:600}
+.cmain{padding:18px}
+.cmh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.cmh h4{font-size:14.5px;font-weight:600}
+.pill{font-size:11.5px;padding:4px 10px;border-radius:var(--rfull);border:1px solid var(--primary-line);
+  color:var(--primary);background:var(--primary-dim);font-weight:600}
+.log{display:grid;gap:1px;background:var(--border-2);border:1px solid var(--border-2);border-radius:var(--r8);overflow:hidden}
+.log .row{display:grid;grid-template-columns:84px 1fr auto;gap:14px;align-items:center;background:var(--card);
+  padding:11px 14px;font-size:13px}
+.log .row .t{color:var(--muted);font-size:11.5px}
+.log .row .d{color:var(--paragraph)}
+.log .row .d b{color:var(--display);font-weight:600}
+.log .row .s{font-size:11px;font-weight:600;color:var(--primary)}
+.log .row .s.no{color:var(--error)}
+.caret{display:inline-block;width:7px;height:13px;background:var(--primary);vertical-align:-2px;margin-inline-start:4px}
+
+/* ================= TRUST STRIP ================= */
+.trust{padding:56px 0;border-top:1px solid transparent}
+.hair{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin-bottom:26px}
+.tick{overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 90px,#000 calc(100% - 90px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 90px,#000 calc(100% - 90px),transparent)}
+.tick .track{display:flex;gap:64px;width:max-content;will-change:transform}
+.tick .item{font-size:15px;font-weight:600;color:var(--muted);opacity:.75;white-space:nowrap}
+
+/* ================= PROBLEM ================= */
+.prob{max-width:818px;margin:0 auto;text-align:center}
+.prob h2{max-width:none;margin-bottom:56px}
+.pcols{display:grid;grid-template-columns:repeat(3,1fr);gap:36px;text-align:start}
+.pcols .ic{width:26px;height:26px;color:var(--primary);margin-bottom:14px}
+.pcols h3{font-size:18px;margin-bottom:8px}
+.pcols p{font-size:15px}
+
+/* ================= BENTO ================= */
+.bento{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.tile{border:1px solid var(--border);border-radius:var(--r16);background:var(--card);padding:26px;
+  position:relative;overflow:hidden;transition:border-color .25s}
+.tile:hover{border-color:var(--primary-line)}
+.tile.span2{grid-column:span 2}
+.tile .ic{width:36px;height:36px;border-radius:9px;background:var(--primary-dim);border:1px solid var(--primary-line);
+  color:var(--primary);display:grid;place-items:center;margin-bottom:14px}
+.tile h3{font-size:18px;margin-bottom:6px}
+.tile p{font-size:14.5px}
+.inner2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+/* media well: parent radius minus 8, with 8px matte */
+.well{margin-top:18px;border-radius:var(--r8);overflow:hidden;position:relative;background:var(--elev)}
+.well img{width:100%;height:100%;object-fit:cover}
+.well .ov{position:absolute;inset:auto 8px 8px;background:color-mix(in srgb,var(--card) 92%,transparent);
+  backdrop-filter:blur(6px);border:1px solid var(--border-2);border-radius:var(--r8);padding:10px 12px;font-size:12px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:3px 0;color:var(--muted);font-size:12.5px}
+.kv b{color:var(--display);font-weight:600}
+.code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--primary);background:var(--elev);
+  border:1px solid var(--border-2);border-radius:var(--r8);padding:12px 14px;margin-top:16px;overflow-x:auto;line-height:1.7}
+.code .c{color:var(--muted)}
+
+/* ================= GOVERNED RUN (horizontal pin) ================= */
+#run{padding-bottom:0;overflow:hidden}
+/* the pinned viewport must fill the screen, or the track floats in dead space */
+#runport{min-height:100svh;display:flex;align-items:center}
+.track{display:flex;gap:24px;width:max-content;padding-inline:24px}
+.panel{width:min(78vw,900px);border:1px solid var(--border);border-radius:var(--r16);background:var(--card);
+  padding:8px;display:grid;grid-template-rows:auto 1fr}
+.panel .pmedia{border-radius:var(--r8);overflow:hidden;height:300px;position:relative;background:var(--elev)}
+.panel .pmedia img{width:100%;height:124%;object-fit:cover;position:absolute;top:-12%;left:0}
+.panel .ptext{padding:22px 18px 18px}
+.panel .no{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--primary);letter-spacing:.1em;margin-bottom:10px}
+.panel h3{margin-bottom:8px}
+.panel p{font-size:15px}
+
+/* ================= STICKY STACK ================= */
+.stack{display:grid;gap:24px}
+.scard{position:sticky;border:1px solid var(--border);border-radius:var(--r16);background:var(--card);
+  padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;transform-origin:center top;will-change:transform}
+.scard .stext{padding:34px}
+.scard .smedia{border-radius:var(--r8);overflow:hidden;min-height:300px;position:relative;background:var(--elev)}
+.scard .smedia img{width:100%;height:124%;object-fit:cover;position:absolute;top:-12%;left:0}
+.scard .no{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--primary);letter-spacing:.1em;margin-bottom:12px}
+.scard h3{margin-bottom:10px}
+.scard ul{list-style:none;margin-top:16px;display:grid;gap:8px}
+.scard li{font-size:14.5px;color:var(--paragraph);display:flex;gap:9px;align-items:flex-start}
+.scard li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--primary);margin-top:8px;flex:none}
+
+/* ================= WHEEL ================= */
+.wheelcard{border:1px solid var(--border);border-radius:var(--r24);background:var(--elev);padding:56px 24px 0;overflow:hidden}
+.wheelport{height:420px;position:relative;overflow:hidden;margin-top:36px}
+.wheel{position:absolute;inset-inline-start:50%;top:0;width:900px;height:900px;transform:translateX(-50%);will-change:transform}
+.wheel .mchip{position:absolute;inset-inline-start:50%;top:50%;padding:9px 16px;border-radius:var(--rfull);
+  background:var(--card);border:1px solid var(--border);font-size:13.5px;font-weight:500;color:var(--paragraph);white-space:nowrap;
+  /* place on the arc, then rotate the whole pill back by the arc angle plus the wheel's live
+     rotation, so both the pill and its label stay upright as the wheel turns */
+  transform:translate(-50%,-50%) rotate(var(--a)) translateY(-430px)
+            rotate(calc(-1 * (var(--a) + var(--cr,0deg))))}
+.wheel .mchip b{display:block;font-weight:500}
+
+/* ================= SOVEREIGNTY ================= */
+.split2{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.photopanel{background:var(--elev);border:1px solid var(--border);border-radius:var(--r16);padding:8px}
+.photopanel .in{border-radius:var(--r8);overflow:hidden;aspect-ratio:4/5;position:relative}
+.photopanel img{width:100%;height:124%;object-fit:cover;position:absolute;top:-12%;left:0}
+.checks{list-style:none;display:grid;gap:12px;margin-top:24px}
+.checks li{display:flex;gap:11px;align-items:flex-start;font-size:15.5px;color:var(--paragraph)}
+.checks svg{flex:none;margin-top:3px;color:var(--primary)}
+
+/* ================= NUMBERS ================= */
+.numbers{border:1px solid var(--border);border-radius:var(--r16);background:var(--card);
+  display:grid;grid-template-columns:repeat(3,1fr)}
+.numbers .cell{padding:52px 32px;border-inline-end:1px solid var(--border)}
+.numbers .cell:last-child{border-inline-end:0}
+.numbers .n{font-size:clamp(52px,7vw,96px);line-height:1;letter-spacing:-.04em;font-weight:600;color:var(--display);
+  font-variant-numeric:tabular-nums}
+.numbers .n span{font-weight:400;color:var(--paragraph)}
+.numbers .lb{font-size:15px;color:var(--display);font-weight:600;margin-top:14px}
+.numbers .cp{font-size:13.5px;color:var(--muted);margin-top:4px}
+
+/* ================= USE CASES ================= */
+.ucard{position:relative;width:320px;height:400px;flex:none;border-radius:var(--r16);overflow:hidden;
+  border:1px solid var(--border)}
+.ucard img{width:100%;height:100%;object-fit:cover}
+.ucard .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(17,25,39,.15) 0%,rgba(17,25,39,.88) 100%)}
+.ucard .top{position:absolute;top:18px;inset-inline:18px;font-size:12px;color:#fff;opacity:.85}
+.ucard .bt{position:absolute;bottom:18px;inset-inline:18px;font-size:18px;font-weight:600;color:#fff;line-height:1.3}
+
+/* ================= FAQ ================= */
+.faqgrid{display:grid;grid-template-columns:394px 1fr;gap:60px;align-items:start}
+.faqrail{position:sticky;top:130px}
+.faqcard{border:1px solid var(--border);border-radius:var(--r16);background:var(--card);overflow:hidden}
+.qa{border-bottom:1px solid var(--border-2)}
+.qa:last-child{border-bottom:0}
+.qa button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:22px 24px;
+  background:none;border:0;font:inherit;font-size:16.5px;font-weight:600;color:var(--display);cursor:pointer;text-align:start}
+.qa button:hover{background:var(--elev)}
+.qa .pm{flex:none;width:24px;height:24px;position:relative}
+.qa .pm i{position:absolute;inset-inline:0;top:11px;height:2px;border-radius:2px;background:var(--primary);transition:transform .3s}
+.qa .pm i:last-child{transform:rotate(90deg)}
+.qa.on .pm i:last-child{transform:rotate(0)}
+.qa .ans{overflow:hidden;height:0}
+.qa .ans p{padding:0 24px 22px;font-size:15.5px}
+
+/* ================= FOOTER ================= */
+footer{padding-top:0}
+.ctaslab{position:relative;border:1px solid var(--border);border-radius:var(--r24);overflow:hidden;
+  background:var(--card);padding:110px 24px;text-align:center}
+.ctaslab .bgimg{position:absolute;inset:0;pointer-events:none;user-select:none}
+.ctaslab .bgimg img{width:100%;height:100%;object-fit:cover;opacity:.18}
+.ctaslab .bgimg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,var(--card))}
+.ctaslab .in{position:relative;z-index:2;max-width:620px;margin:0 auto}
+.ctaslab h2{margin-inline:auto}
+.fgrid{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:36px;padding:72px 0 40px}
+.fcol h4{font-size:13.5px;font-weight:600;color:var(--display);margin-bottom:14px}
+.fcol a{display:block;padding:6px 0;color:var(--muted);font-size:14.5px}
+.fcol a:hover{color:var(--primary)}
+.fbrand p{font-size:14.5px;color:var(--muted);margin:14px 0;max-width:36ch}
+.fbot{border-top:1px solid var(--border-2);padding:20px 0;display:flex;justify-content:space-between;
+  align-items:center;gap:16px;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+.fbot nav{display:flex;gap:18px;flex-wrap:wrap}
+
+.rv{opacity:0}
+
+@media(max-width:1024px){
+  :root{--section-y:80px}
+  .bento,.pcols,.split2,.numbers,.faqgrid,.inner2{grid-template-columns:1fr}
+  .tile.span2{grid-column:span 1}
+  .numbers .cell{border-inline-end:0;border-bottom:1px solid var(--border)}
+  .numbers .cell:last-child{border-bottom:0}
+  .scard{grid-template-columns:1fr}
+  .faqrail{position:static}
+  .nav .links{display:none}
+  .nav .links.open{display:flex;flex-direction:column;position:absolute;inset-inline:0;top:64px;
+    background:var(--card);border:1px solid var(--border);border-radius:var(--r16);padding:10px;gap:2px;margin:0}
+  .burger{display:grid}
+  .cbody{grid-template-columns:1fr}.cside{display:none}
+  .fgrid{grid-template-columns:1fr 1fr}
+  .navwrap{top:12px}
+  #hero{padding-top:110px}
+}
+@media(max-width:640px){.fgrid{grid-template-columns:1fr}.tchips span{border:0}}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to main content</a>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="govbar"><div class="wrap">
+  <div class="ent"><span class="emblem" aria-hidden="true"></span>
+    <span data-i18n="gov">An official platform of the Saudi Data &amp; AI Authority</span></div>
+  <span data-i18n="internal">Internal use</span>
+</div></div>
+
+<header>
+  <div class="navwrap"><div class="nav" id="nav">
+    <a href="#" class="brand"><i aria-hidden="true"></i><span>Dev AI</span></a>
+    <nav class="links" id="links" aria-label="Main">
+      <a href="#platform" data-i18n="nav1">Platform</a>
+      <a href="#run" data-i18n="nav2">How it works</a>
+      <a href="#models" data-i18n="nav3">Models</a>
+      <a href="#faq" data-i18n="nav4">FAQ</a>
+    </nav>
+    <div class="act">
+      <button class="ibtn burger" id="burger" aria-expanded="false" aria-controls="links" aria-label="Open menu">☰</button>
+      <button class="ibtn" id="lang" lang="ar">العربية</button>
+      <button class="ibtn" id="theme" aria-label="Switch to light mode">◐</button>
+      <a href="#" class="btn btn-primary sm" data-i18n="cta">Open platform</a>
+    </div>
+  </div></div>
+</header>
+
+<main id="main">
+
+<!-- ================= 01 HERO ================= -->
+<section id="hero">
+  <div class="hbg" aria-hidden="true">
+    <img src="img/hero-kafd-skyline.jpg" alt="" fetchpriority="high">
+  </div>
+  <div class="hglow" aria-hidden="true"></div>
+  <div class="dunes" aria-hidden="true">
+    <svg viewBox="0 0 1440 340" preserveAspectRatio="none" style="height:340px"><path d="M0 200 C 260 120 420 250 700 190 C 980 130 1180 240 1440 170 L1440 340 L0 340 Z" fill="rgba(84,192,138,.06)"/></svg>
+    <svg viewBox="0 0 1440 260" preserveAspectRatio="none" style="height:260px"><path d="M0 160 C 300 90 520 200 820 150 C 1100 105 1250 190 1440 140 L1440 260 L0 260 Z" fill="var(--card)" opacity=".7"/></svg>
+    <svg viewBox="0 0 1440 200" preserveAspectRatio="none" style="height:200px"><path d="M0 130 C 280 70 560 160 900 120 C 1160 90 1300 150 1440 120 L1440 200 L0 200 Z" fill="var(--body)"/></svg>
+  </div>
+
+  <div class="wrap">
+    <span class="chip rv" data-i18n="eyebrow">Internal platform · SDAIA</span>
+    <h1 class="split" data-i18n="h1">Ship AI products faster, without giving up control of your code.</h1>
+    <p class="lead rv" data-i18n="lead">Approved models, agents, and tools inside your own IDE. Models, data, and policy stay governed in one place.</p>
+    <div class="hcta rv">
+      <a href="#" class="btn btn-primary"><span class="lbl" data-i18n="cta">Open platform</span> <span class="arw" aria-hidden="true">→</span></a>
+      <a href="#platform" class="btn btn-ghost"><span class="lbl" data-i18n="cta2">See how governance works</span></a>
+    </div>
+    <div class="tchips rv">
+      <span data-i18n="tc1">Runs in your infrastructure</span>
+      <span data-i18n="tc2">Every action logged</span>
+      <span data-i18n="tc3">No training on your code</span>
+    </div>
+
+    <div class="console" id="console" role="img" aria-label="Dev AI governance console showing a live audit trail: a QA agent generating tests was allowed, a request for an external model was blocked, a data-residency policy was enforced, an endpoint scan was allowed, and a model switch was signed by the platform team.">
+      <div class="inner">
+        <div class="cbar"><span class="cdot"></span><span class="cdot"></span><span class="cdot"></span>
+          <span class="url mono">devai.sdaia.gov.sa / governance</span></div>
+        <div class="cbody">
+          <div class="cside"><a>Overview</a><a class="on">Audit trail</a><a>Policies</a><a>Models</a><a>Agents</a><a>Spend</a></div>
+          <div class="cmain">
+            <div class="cmh"><h4 data-i18n="auditH">Live audit trail</h4><span class="pill" data-i18n="auditP">All actions signed</span></div>
+            <div class="log" id="log" aria-hidden="true">
+              <div class="row"><span class="t mono">09:41:07</span><span class="d"><b>QA agent</b> generated tests for cart.ts</span><span class="s">ALLOWED</span></div>
+              <div class="row"><span class="t mono">09:41:22</span><span class="d"><b>Developer agent</b> requested external model</span><span class="s no">BLOCKED</span></div>
+              <div class="row"><span class="t mono">09:42:03</span><span class="d"><b>Policy</b> data-residency applied to request</span><span class="s">ENFORCED</span></div>
+              <div class="row"><span class="t mono">09:42:35</span><span class="d"><b>Pen-tester agent</b> scanned /api endpoints</span><span class="s">ALLOWED</span></div>
+              <div class="row"><span class="t mono">09:43:11</span><span class="d"><b>Model switch</b> approved by platform team <span class="caret" id="caret"></span></span><span class="s">SIGNED</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 TRUST STRIP ================= -->
+<div class="trust"><div class="wrap">
+  <div class="hair" aria-hidden="true"></div>
+  <p class="cap" style="text-align:center;margin-bottom:20px" data-i18n="trustL">Governed AI in production across</p>
+  <div class="tick" data-tick data-speed="46"><div class="track" id="trust-track"></div></div>
+</div></div>
+
+<!-- ================= 03 PROBLEM ================= -->
+<section id="problem"><div class="wrap"><div class="prob">
+  <span class="chip rv" data-i18n="probC">The problem</span>
+  <h2 class="split" data-i18n="probH">Developers already use AI. Nobody can prove what it touched.</h2>
+  <div class="pcols">
+    <div class="rv">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7z"/><path d="M9 12l2 2 4-4"/></svg>
+      <h3 data-i18n="p1h">Shadow tooling</h3><p data-i18n="p1p">Teams reach for whatever model is fastest to access, outside any approval path.</p></div>
+    <div class="rv">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg>
+      <h3 data-i18n="p2h">Unreviewable changes</h3><p data-i18n="p2p">AI-assisted commits arrive with no record of which model produced them, or on what data.</p></div>
+    <div class="rv">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <h3 data-i18n="p3h">Reporting by hand</h3><p data-i18n="p3p">Leadership asks what AI costs and what it touched, and the answer takes a week to assemble.</p></div>
+  </div>
+</div></div></section>
+
+<!-- ================= 04 CAPABILITY BENTO ================= -->
+<section id="platform"><div class="wrap">
+  <div class="shead">
+    <div><span class="chip rv">Capabilities</span><h2 class="rv" data-i18n="capH">Governance you can see, not a policy document.</h2></div>
+    <p class="rv" data-i18n="capP">Every control is enforced the moment a request is made, and recorded where you can audit it.</p>
+  </div>
+
+  <div class="bento">
+    <div class="tile span2 rv">
+      <div class="inner2">
+        <div>
+          <div class="ic" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10l9-6 9 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></svg></div>
+          <h3 data-i18n="b1h">Your code never leaves</h3>
+          <p data-i18n="b1p">Inference runs inside your own infrastructure. Nothing is sent out for training.</p>
+          <div class="well" style="height:170px">
+            <img src="img/kafd.jpg" alt="The King Abdullah Financial District in Riyadh." loading="lazy" decoding="async">
+            <div class="ov">
+              <div class="kv"><span>Region</span><b class="mono">ksa-central-1</b></div>
+              <div class="kv"><span>Egress</span><b class="mono" style="color:var(--primary)">blocked</b></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="ic" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M4 12h16M4 18h16"/></svg></div>
+          <h3 data-i18n="b2h">Policy as code</h3>
+          <p data-i18n="b2p">Guardrails decide which models and tools touch which data.</p>
+          <div class="code">policy <span style="color:var(--display)">"residency"</span> {<br>
+            &nbsp;&nbsp;region = <span style="color:var(--display)">"ksa-central-1"</span><br>
+            &nbsp;&nbsp;on_violation = <span style="color:var(--display)">"block + log"</span><br>}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tile rv">
+      <div class="ic" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></div>
+      <h3 data-i18n="b3h">Secret scanning</h3>
+      <p data-i18n="b3p">Credentials are caught and masked before a request ever reaches a model.</p>
+      <div class="well" style="height:150px">
+        <img src="img/masmak-night.jpg" alt="Al-Masmak Fortress in Riyadh, lit at night." loading="lazy" decoding="async">
+        <div class="ov mono" style="color:var(--muted)">key = sk-••••••••<span style="color:var(--error);font-weight:600"> masked</span></div>
+      </div>
+    </div>
+
+    <div class="tile rv">
+      <div class="ic" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l6-6 4 4 8-8"/></svg></div>
+      <h3 data-i18n="b4h">Cost ceilings</h3>
+      <p data-i18n="b4p">Set a budget per team. Spend stops at the ceiling instead of surprising you.</p>
+      <div class="code"><span class="c">team-platform</span><br>budget 64% <span class="c">of monthly ceiling</span></div>
+    </div>
+
+    <div class="tile span2 rv" style="background:var(--primary-deep);border-color:var(--primary-deep)">
+      <h3 style="color:#fff" data-i18n="b5h">One extension. Every IDE your teams already use.</h3>
+      <p style="color:rgba(255,255,255,.82)" data-i18n="b5p">VS Code, Visual Studio, and JetBrains. Nothing new to learn, and nothing to configure per machine.</p>
+      <div class="code" style="background:rgba(0,0,0,.24);border-color:rgba(255,255,255,.16);color:#fff">
+        <span style="color:rgba(255,255,255,.55)">›</span> devai auth login <span class="c" style="color:rgba(255,255,255,.5)">// uses your SDAIA SSO</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ================= 05 GOVERNED RUN (horizontal pin) ================= -->
+<section id="run">
+  <div class="wrap"><div class="chead">
+    <span class="chip rv">A governed run</span>
+    <h2 class="rv" data-i18n="runH">What happens between a prompt and a commit.</h2>
+    <p class="rv" data-i18n="runP">Five checks run on every request. None of them are optional, and all of them are recorded.</p>
+  </div></div>
+  <div id="runport">
+    <div class="track" id="runtrack" role="group" aria-roledescription="Sequence of five stages in a governed AI request">
+      <article class="panel" aria-label="Stage 1 of 5: Request">
+        <div class="pmedia"><img src="img/metro-a.jpg" alt="A station on the Riyadh Metro." loading="lazy" decoding="async"></div>
+        <div class="ptext"><div class="no">01 / REQUEST</div><h3 data-i18n="r1h">A developer asks for help</h3>
+          <p data-i18n="r1p">The prompt leaves the IDE carrying the developer's identity and the repository it came from.</p></div>
+      </article>
+      <article class="panel" aria-label="Stage 2 of 5: Policy check">
+        <div class="pmedia"><img src="img/diriyah-turaif.jpg" alt="Mud-brick walls of the At-Turaif district, Diriyah." loading="lazy" decoding="async"></div>
+        <div class="ptext"><div class="no">02 / POLICY CHECK</div><h3 data-i18n="r2h">Rules apply before anything runs</h3>
+          <p data-i18n="r2p">Residency, data class, and role are evaluated. Secrets are masked. Violations stop here.</p></div>
+      </article>
+      <article class="panel" aria-label="Stage 3 of 5: Model routing">
+        <div class="pmedia"><img src="img/riyadh-skyline.jpg" alt="The Riyadh skyline at dusk." loading="lazy" decoding="async"></div>
+        <div class="ptext"><div class="no">03 / MODEL ROUTING</div><h3 data-i18n="r3h">Only approved models receive it</h3>
+          <p data-i18n="r3p">The request routes to a model on your catalogue, inside your infrastructure.</p></div>
+      </article>
+      <article class="panel" aria-label="Stage 4 of 5: Signed output">
+        <div class="pmedia"><img src="img/kafd.jpg" alt="Towers of the King Abdullah Financial District." loading="lazy" decoding="async"></div>
+        <div class="ptext"><div class="no">04 / SIGNED OUTPUT</div><h3 data-i18n="r4h">The result is attributable</h3>
+          <p data-i18n="r4p">Output returns signed, so any change can be traced back to the model that produced it.</p></div>
+      </article>
+      <article class="panel" aria-label="Stage 5 of 5: Audit record">
+        <div class="pmedia"><img src="img/ministry-finance.jpg" alt="The Ministry of Finance building in Riyadh." loading="lazy" decoding="async"></div>
+        <div class="ptext"><div class="no">05 / AUDIT RECORD</div><h3 data-i18n="r5h">It is written down, permanently</h3>
+          <p data-i18n="r5p">Who asked, which model answered, what policy applied. Available to your team and to leadership.</p></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 STICKY STACK ================= -->
+<section id="teams"><div class="wrap">
+  <div class="shead">
+    <div><span class="chip rv">Who it is for</span><h2 class="rv" data-i18n="whoH">One platform, two very different jobs.</h2></div>
+    <p class="rv" data-i18n="whoP">Developers stop asking what is allowed. Leadership stops waiting for a report.</p>
+  </div>
+  <div class="stack" id="stack">
+    <article class="scard">
+      <div class="stext"><div class="no">01 / BUILD</div><h3 data-i18n="s1h">For the people writing the code</h3>
+        <p class="small" data-i18n="s1p">Pre-approved models, agents, and MCP servers straight from your IDE, with guardrails already applied.</p>
+        <ul><li>No approval ticket to start</li><li>Same extension across VS Code, Visual Studio, JetBrains</li><li>Agents you can share with other teams</li></ul></div>
+      <div class="smedia"><img src="img/metro-b.jpg" alt="Interior of a Riyadh Metro station." loading="lazy" decoding="async"></div>
+    </article>
+    <article class="scard">
+      <div class="stext"><div class="no">02 / GOVERN</div><h3 data-i18n="s2h">For the people who sign it off</h3>
+        <p class="small" data-i18n="s2p">Roles, policies, and approvals sit beside the resources they protect, with a full audit trail.</p>
+        <ul><li>Policy written once, enforced everywhere</li><li>Every AI action attributable</li><li>Model catalogue you control</li></ul></div>
+      <div class="smedia"><img src="img/ministry-education.jpg" alt="The Ministry of Education building in Riyadh." loading="lazy" decoding="async"></div>
+    </article>
+    <article class="scard">
+      <div class="stext"><div class="no">03 / OPERATE</div><h3 data-i18n="s3h">For the people who answer for it</h3>
+        <p class="small" data-i18n="s3p">Adoption, cost, and compliance across every team in one place, in real time.</p>
+        <ul><li>Spend against budget per team</li><li>Policy violations surfaced immediately</li><li>No manual reporting cycle</li></ul></div>
+      <div class="smedia"><img src="img/king-salman-park.jpg" alt="The visitor pavilion at King Salman Park, Riyadh." loading="lazy" decoding="async"></div>
+    </article>
+  </div>
+</div></section>
+
+<!-- ================= 07 MODEL WHEEL ================= -->
+<section id="models"><div class="wrap"><div class="wheelcard">
+  <div class="chead" style="margin-bottom:0">
+    <span class="chip rv">Model catalogue</span>
+    <h2 class="rv" data-i18n="mdH">Approve the models. Teams get them everywhere.</h2>
+    <p class="rv" data-i18n="mdP">Swap a model centrally and every IDE, agent, and workflow follows. No redeploy, no migration.</p>
+  </div>
+  <div class="wheelport" aria-hidden="true"><div class="wheel" id="wheel"></div></div>
+</div></div></section>
+
+<!-- ================= 08 SOVEREIGNTY ================= -->
+<section id="sovereign"><div class="wrap"><div class="split2">
+  <div class="photopanel rv">
+    <div class="in"><img id="sovimg" src="img/uruq-reserve.jpg" alt="The Uruq Bani Ma'arid reserve in Saudi Arabia." loading="lazy" decoding="async"></div>
+  </div>
+  <div>
+    <span class="chip rv">Sovereign by default</span>
+    <h2 class="rv" data-i18n="svH">Built to stay inside the Kingdom.</h2>
+    <p class="rv" data-i18n="svP">Sovereignty is not a setting you remember to switch on. It is where the platform runs.</p>
+    <ul class="checks rv">
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="sv1">Data residency in-Kingdom, enforced per request</span></li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="sv2">No training on your code, ever</span></li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="sv3">SDAIA single sign-on and role-based access</span></li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="sv4">Full audit export for review and compliance</span></li>
+    </ul>
+  </div>
+</div></div></section>
+
+<!-- ================= 09 NUMBERS ================= -->
+<section id="numbers"><div class="wrap"><div class="numbers">
+  <div class="cell rv"><div class="n"><span class="num" data-to="40">0</span><span>%</span></div>
+    <div class="lb" data-i18n="n1">Less time to first pull request</div><div class="cp" data-i18n="n1c">Measured across pilot teams</div></div>
+  <div class="cell rv"><div class="n"><span class="num" data-to="100">0</span><span>%</span></div>
+    <div class="lb" data-i18n="n2">Of AI actions logged</div><div class="cp" data-i18n="n2c">Nothing runs outside the audit trail</div></div>
+  <div class="cell rv"><div class="n"><span class="num" data-to="12">0</span><span> min</span></div>
+    <div class="lb" data-i18n="n3">To onboard a team</div><div class="cp" data-i18n="n3c">Sign in, pull the catalogue, start</div></div>
+</div></div></section>
+
+<!-- ================= 10 USE CASES ================= -->
+<section id="cases">
+  <div class="wrap"><div class="chead">
+    <span class="chip rv">Adoption</span>
+    <h2 class="rv" data-i18n="ucH">Already running across the organization.</h2>
+  </div></div>
+  <div class="tick" data-tick data-speed="60"><div class="track" id="case-track"></div></div>
+</section>
+
+<!-- ================= 11 INTEGRATIONS ================= -->
+<section id="integrations"><div class="wrap">
+  <div class="chead"><span class="chip rv">Integrations</span>
+    <h2 class="rv" data-i18n="inH">Fits the tools your teams already run.</h2></div>
+  <div style="background:var(--elev);border:1px solid var(--border);border-radius:var(--r16);padding:56px 0;display:grid;gap:22px">
+    <div class="tick" data-tick data-speed="42"><div class="track" id="int1"></div></div>
+    <div class="tick" data-tick data-speed="54" data-rev="1"><div class="track" id="int2"></div></div>
+  </div>
+</div></section>
+
+<!-- ================= 12 FAQ ================= -->
+<section id="faq"><div class="wrap"><div class="faqgrid">
+  <div class="faqrail">
+    <span class="chip rv">FAQ</span>
+    <h2 class="rv" data-i18n="fqH">Questions, answered.</h2>
+    <p class="rv small" style="margin-top:14px" data-i18n="fqP">Still have a question? The platform team answers within a working day.</p>
+    <a href="#" class="btn btn-ghost rv" style="margin-top:22px" data-i18n="fqB">Contact the platform team</a>
+  </div>
+  <div class="faqcard rv">
+    <div class="qa"><button aria-expanded="false"><span>Do I need approval to start?</span><span class="pm" aria-hidden="true"><i></i><i></i></span></button><div class="ans"><p>Placeholder: replace with the real policy.</p></div></div>
+    <div class="qa"><button aria-expanded="false"><span>Which models are available?</span><span class="pm" aria-hidden="true"><i></i><i></i></span></button><div class="ans"><p>Placeholder: list the approved model families and who to ask to add one.</p></div></div>
+    <div class="qa"><button aria-expanded="false"><span>Can my code be used for training?</span><span class="pm" aria-hidden="true"><i></i><i></i></span></button><div class="ans"><p>Placeholder: state the data-retention position plainly.</p></div></div>
+    <div class="qa"><button aria-expanded="false"><span>What does it cost my team?</span><span class="pm" aria-hidden="true"><i></i><i></i></span></button><div class="ans"><p>Placeholder: internal chargeback model, or no cost to your team.</p></div></div>
+    <div class="qa"><button aria-expanded="false"><span>How do I request a new tool or model?</span><span class="pm" aria-hidden="true"><i></i><i></i></span></button><div class="ans"><p>Placeholder: link the request form or channel.</p></div></div>
+    <div class="qa"><button aria-expanded="false"><span>Who do I contact for support?</span><span class="pm" aria-hidden="true"><i></i><i></i></span></button><div class="ans"><p>Placeholder: team channel, mailbox, on-call rotation.</p></div></div>
+  </div>
+</div></div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="ctaslab">
+    <div class="bgimg" aria-hidden="true">
+      <img src="img/riyadh-skyline-new.jpg" alt="" loading="lazy" decoding="async">
+    </div>
+    <div class="in">
+      <span class="chip">Take the next step</span>
+      <h2 data-i18n="ctaH">Ready to give your developers governed AI?</h2>
+      <p style="margin-top:16px" data-i18n="ctaP">Sign in with your SDAIA account. Nothing to install for your organization.</p>
+      <div class="hcta">
+        <a href="#" class="btn btn-primary"><span class="lbl" data-i18n="cta">Open platform</span> <span class="arw" aria-hidden="true">→</span></a>
+        <a href="#" class="btn btn-ghost"><span class="lbl" data-i18n="ctaB">Talk to the platform team</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="fgrid">
+    <div class="fcol fbrand">
+      <a href="#" class="brand"><i aria-hidden="true"></i><span>Dev AI</span></a>
+      <p>An internal product by the Saudi Data &amp; AI Authority. Governed AI for the teams building national products.</p>
+      <a href="mailto:devai@sdaia.gov.sa" style="color:var(--primary);font-weight:600">devai@sdaia.gov.sa</a>
+    </div>
+    <div class="fcol"><h4>Platform</h4><a href="#platform">Capabilities</a><a href="#run">How it works</a><a href="#models">Models</a><a href="#">Marketplace</a></div>
+    <div class="fcol"><h4>Resources</h4><a href="#">Documentation</a><a href="#">Request a model</a><a href="#faq">FAQ</a><a href="#">Changelog</a></div>
+    <div class="fcol"><h4>Support</h4><a href="#">Contact the team</a><a href="#">Status</a><a href="#">Report an issue</a></div>
+  </div>
+  <div class="fbot">
+    <span>© 2026 Saudi Data &amp; AI Authority. Internal use only.</span>
+    <nav aria-label="Legal">
+      <a href="#">Privacy policy</a><a href="#">Terms of use</a><a href="#">Accessibility statement</a>
+      <button class="ibtn" id="motion" style="height:30px;font-size:12.5px" aria-pressed="false">Pause motion</button>
+    </nav>
+  </div>
+</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* direction multiplier: GSAP x/xPercent are physically LTR and ignore dir="rtl" */
+const DIR = () => document.documentElement.dir === 'rtl' ? -1 : 1;
+const motionOff = () => document.documentElement.dataset.motion === 'off';
+
+/* ---------- repeated content ---------- */
+const ENTITIES = ['Ministry Platforms','National Data Bank','Digital Services','Statistics Authority',
+                  'Health Data','Identity Services','Municipal Systems','Customs Platform'];
+const INT1 = ['VS Code','JetBrains','GitHub Enterprise','GitLab','Jira','Jenkins'];
+const INT2 = ['Azure DevOps','Bitbucket','Confluence','Grafana','Vault','Kubernetes'];
+const CASES = [
+  ['Ministry service team','Rebuilt a citizen service form flow in three days'],
+  ['Municipal platform','Automated inspection report drafting'],
+  ['Health data team','Generated test coverage for a records service'],
+  ['Digital identity','Reviewed an authentication service for vulnerabilities'],
+  ['Statistics authority','Turned survey pipelines into documented jobs'],
+  ['Internal tooling','Shared one agent across six delivery teams'],
+];
+const CASE_IMGS = [
+  'img/ministry-education.jpg',
+  'img/king-salman-park.jpg',
+  'img/ministry-finance.jpg',
+  'img/metro-a.jpg',
+  'img/riyadh-skyline.jpg',
+  'img/diriyah-turaif.jpg'
+];
+const MODELS = ['ALLaM','Claude Opus','GPT-4o','Llama 3','Mistral Large','Command R+','Gemini Pro','Falcon',
+                'Qwen','DeepSeek','Phi-3','Titan','Cohere Embed','Jais','Nova','StarCoder'];
+
+const fill = (el, items) => { el.innerHTML = items.concat(items).map(t=>`<span class="item">${t}</span>`).join(''); };
+fill(document.getElementById('trust-track'), ENTITIES);
+fill(document.getElementById('int1'), INT1);
+fill(document.getElementById('int2'), INT2);
+
+document.getElementById('case-track').innerHTML = CASES.concat(CASES).map(([k,v],i)=>`
+  <article class="ucard">
+    <img src="${CASE_IMGS[i%6]}" alt="" loading="lazy" decoding="async" aria-hidden="true">
+    <span class="sc" aria-hidden="true"></span>
+    <span class="top">${k}</span><span class="bt">${v}</span>
+  </article>`).join('');
+
+/* model wheel: chips on an arc, each counter-rotated so labels stay upright */
+const wheel = document.getElementById('wheel');
+wheel.innerHTML = MODELS.map((m,i)=>{
+  const a = -112 + i*(224/(MODELS.length-1));
+  return `<span class="mchip" style="--a:${a.toFixed(2)}deg"><b>${m}</b></span>`;
+}).join('');
+
+/* ---------- word-level split (never per character: Arabic must stay joined) ---------- */
+function splitWords(el){
+  if(el.dataset.split) return;
+  el.dataset.split = '1';
+  const walk = n => [...n.childNodes].forEach(c=>{
+    if(c.nodeType===3){
+      if(!c.textContent.trim()){ c.replaceWith(document.createTextNode(' ')); return; }
+      const f=document.createDocumentFragment();
+      c.textContent.trim().split(/\s+/).forEach(word=>{
+        const o=document.createElement('span'); o.className='w-outer';
+        const i=document.createElement('span'); i.className='w'; i.textContent=word;
+        o.appendChild(i); f.appendChild(o); f.appendChild(document.createTextNode(' '));
+      });
+      c.replaceWith(f);
+    } else if(c.nodeType===1) walk(c);
+  });
+  walk(el);
+}
+
+let ctx;
+function build(){
+  if(ctx) ctx.revert();
+  ctx = gsap.context(() => {
+    const mm = gsap.matchMedia();
+
+    /* ===== reduced motion / motion paused: show everything, animate nothing ===== */
+    mm.add('(prefers-reduced-motion: reduce)', () => {
+      gsap.set('.rv, .w', {opacity:1, y:0, filter:'none'});
+      document.querySelectorAll('.num').forEach(el=>el.textContent=(+el.dataset.to).toLocaleString());
+    });
+
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      if(motionOff()){
+        gsap.set('.rv, .w', {opacity:1, y:0, filter:'none'});
+        document.querySelectorAll('.num').forEach(el=>el.textContent=(+el.dataset.to).toLocaleString());
+        return;
+      }
+
+      /* --- word-by-word blur reveal, the one signature flourish (2 headings only) --- */
+      document.querySelectorAll('.split').forEach((h,idx)=>{
+        splitWords(h);
+        const words = h.querySelectorAll('.w');
+        gsap.set(words,{opacity:0,filter:'blur(8px)',yPercent:60});
+        gsap.to(words,{opacity:1,filter:'blur(0px)',yPercent:0,duration:.9,ease:'power3.out',stagger:.035,
+          scrollTrigger:{trigger:h,start: idx===0 ? 'top 95%' : 'top 78%', once:true}});
+      });
+
+      /* --- one entrance gesture, graded by weight --- */
+      gsap.utils.toArray('.rv').forEach(el=>{
+        gsap.fromTo(el,{opacity:0,y:24},{opacity:1,y:0,duration:.75,ease:'power2.out',
+          scrollTrigger:{trigger:el,start:'top 92%',once:true}});
+      });
+
+      /* --- hero console rises and scales into frame --- */
+      gsap.fromTo('#console',{y:60,scale:.9,opacity:0},
+        {y:0,scale:1,opacity:1,duration:1.1,ease:'power3.out',delay:.35});
+      gsap.to('#console',{yPercent:-4,ease:'none',
+        scrollTrigger:{trigger:'#hero',start:'top top',end:'bottom top',scrub:true}});
+
+      /* --- audit log types itself in, and only while visible --- */
+      const rows = gsap.utils.toArray('#log .row');
+      const logTl = gsap.timeline({paused:true})
+        .from(rows,{opacity:0,y:8,duration:.4,stagger:.18,ease:'power2.out'})
+        .to('#caret',{opacity:0,duration:.5,repeat:-1,yoyo:true,ease:'steps(1)'},'>-.2');
+      ScrollTrigger.create({trigger:'#console',start:'top 85%',
+        onEnter:()=>logTl.play(), onLeave:()=>logTl.pause(), onEnterBack:()=>logTl.play(), onLeaveBack:()=>logTl.pause()});
+
+      /* --- media clip-path wipes + counter-scale, so pictures are revealed not slid --- */
+      gsap.utils.toArray('.well, .pmedia, .smedia, .photopanel .in').forEach(panel=>{
+        gsap.fromTo(panel,{clipPath:'inset(0 0 100% 0)'},{clipPath:'inset(0 0 0% 0)',duration:1.05,ease:'power4.out',
+          scrollTrigger:{trigger:panel,start:'top 86%',once:true}});
+        const img = panel.querySelector('img');
+        if(img) gsap.fromTo(img,{scale:1.08},{scale:1,duration:1.2,ease:'power3.out',
+          scrollTrigger:{trigger:panel,start:'top 86%',once:true}});
+      });
+
+      /* --- parallax inside fixed frames --- */
+      gsap.utils.toArray('.pmedia img, .smedia img, #sovimg').forEach(img=>{
+        gsap.fromTo(img,{yPercent:-9},{yPercent:9,ease:'none',
+          scrollTrigger:{trigger:img.closest('.pmedia,.smedia,.in'),start:'top bottom',end:'bottom top',scrub:true}});
+      });
+
+      /* --- hero backdrop drifts slower than the page --- */
+      gsap.to('.hbg img',{yPercent:12,ease:'none',
+        scrollTrigger:{trigger:'#hero',start:'top top',end:'bottom top',scrub:true}});
+
+      /* --- counters --- */
+      document.querySelectorAll('.num').forEach(el=>{
+        const to=+el.dataset.to, o={v:0};
+        gsap.to(o,{v:to,duration:1.6,ease:'power2.out',snap:{v:1},
+          scrollTrigger:{trigger:el,start:'top 88%',once:true},
+          onUpdate:()=>el.textContent=Math.round(o.v).toLocaleString('en-US')});
+      });
+
+      /* --- model wheel rotates on scrub; labels counter-rotate via --cr so they stay upright --- */
+      const spin={r:DIR()*-10};
+      gsap.set(wheel,{rotation:spin.r}); wheel.style.setProperty('--cr',spin.r+'deg');
+      gsap.to(spin,{r:DIR()*10,ease:'none',
+        scrollTrigger:{trigger:'#models',start:'top bottom',end:'bottom top',scrub:1},
+        onUpdate:()=>{gsap.set(wheel,{rotation:spin.r}); wheel.style.setProperty('--cr',spin.r.toFixed(2)+'deg');}});
+
+      /* --- nav condenses once past the hero --- */
+      ScrollTrigger.create({start:'top -120',
+        onToggle:s=>gsap.to('#nav',{maxWidth:s.isActive?760:900,duration:.45,ease:'power2.out'})});
+
+      /* ===== desktop-only structural motion ===== */
+      mm.add('(min-width:900px)', () => {
+        /* horizontal pin: five stages scrub sideways */
+        const track = document.getElementById('runtrack');
+        const dist = () => track.scrollWidth - window.innerWidth + 48;
+        gsap.to(track,{x:()=>DIR()*-dist(),ease:'none',
+          scrollTrigger:{trigger:'#runport',start:'top top',end:()=>'+='+dist(),
+            pin:true,anticipatePin:1,scrub:true,invalidateOnRefresh:true}});
+
+        /* sticky stack: each card shrinks as the next covers it */
+        const cards = gsap.utils.toArray('#stack .scard');
+        cards.forEach((c,i)=>{
+          c.style.top = (100 + i*8) + 'px';
+          const next = cards[i+1];
+          if(next) gsap.to(c,{scale:.94,opacity:.72,ease:'none',transformOrigin:'center top',
+            scrollTrigger:{trigger:next,start:'top bottom',end:'top top',scrub:true}});
+        });
+      });
+    });
+
+    /* ===== tickers: run unless motion is off, pause on hover and focus ===== */
+    if(!motionOff() && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+      document.querySelectorAll('[data-tick]').forEach(t=>{
+        const track = t.querySelector('.track');
+        const rev = t.dataset.rev ? -1 : 1;
+        const tw = gsap.to(track,{xPercent:DIR()*rev*-50,duration:+t.dataset.speed,ease:'none',repeat:-1});
+        t.addEventListener('mouseenter',()=>tw.pause());
+        t.addEventListener('mouseleave',()=>tw.play());
+        t.addEventListener('focusin',()=>tw.pause());
+        t.addEventListener('focusout',()=>tw.play());
+      });
+    }
+  }, document.body);
+}
+build();
+document.fonts.ready.then(()=>ScrollTrigger.refresh());
+
+/* ---------- FAQ ---------- */
+document.querySelectorAll('.qa button').forEach(btn=>btn.addEventListener('click',()=>{
+  const qa=btn.parentElement, ans=qa.querySelector('.ans'), open=qa.classList.contains('on');
+  document.querySelectorAll('.qa').forEach(o=>{
+    if(o!==qa && o.classList.contains('on')){
+      o.classList.remove('on'); o.querySelector('button').setAttribute('aria-expanded','false');
+      gsap.to(o.querySelector('.ans'),{height:0,duration:.3,ease:'power2.inOut'});
+    }
+  });
+  qa.classList.toggle('on',!open);
+  btn.setAttribute('aria-expanded',String(!open));
+  gsap.to(ans,{height:open?0:'auto',duration:.35,ease:'power2.out'});
+}));
+
+/* ---------- menu ---------- */
+const burger=document.getElementById('burger'), links=document.getElementById('links');
+burger.addEventListener('click',()=>{const o=links.classList.toggle('open');
+  burger.setAttribute('aria-expanded',String(o)); burger.setAttribute('aria-label',o?'Close menu':'Open menu');});
+
+/* ---------- theme ---------- */
+document.getElementById('theme').addEventListener('click',e=>{
+  const h=document.documentElement, light=h.dataset.theme==='light';
+  h.dataset.theme=light?'dark':'light';
+  e.currentTarget.setAttribute('aria-label',light?'Switch to light mode':'Switch to dark mode');
+});
+
+/* ---------- motion toggle (WCAG 2.2.2: anything moving past 5s needs a control) ---------- */
+const mbtn=document.getElementById('motion');
+if(localStorage.getItem('devai-motion')==='off') document.documentElement.dataset.motion='off';
+const syncM=()=>{const off=motionOff();
+  mbtn.textContent=off?'Resume motion':'Pause motion'; mbtn.setAttribute('aria-pressed',String(off));};
+syncM();
+mbtn.addEventListener('click',()=>{
+  const off=!motionOff();
+  document.documentElement.dataset.motion=off?'off':'';
+  localStorage.setItem('devai-motion',off?'off':'on');
+  syncM(); build(); ScrollTrigger.refresh();
+});
+
+/* ---------- Arabic / RTL ---------- */
+const AR={
+ gov:'منصة رسمية تابعة للهيئة السعودية للبيانات والذكاء الاصطناعي',internal:'للاستخدام الداخلي',
+ nav1:'المنصة',nav2:'كيف تعمل',nav3:'النماذج',nav4:'الأسئلة الشائعة',
+ cta:'ادخل إلى المنصة',cta2:'تعرّف على الحوكمة',ctaB:'تواصل مع فريق المنصة',
+ eyebrow:'منصة داخلية · سدايا',
+ h1:'أطلق منتجات الذكاء الاصطناعي بسرعة أكبر، مع بقاء التحكم في التعليمات البرمجية لديك.',
+ lead:'نماذج ووكلاء وأدوات معتمدة داخل بيئة التطوير الخاصة بك، مع بقاء النماذج والبيانات والسياسات تحت حوكمة مركزية.',
+ tc1:'يعمل داخل بنيتك التحتية',tc2:'تسجيل كل إجراء',tc3:'لا تدريب على التعليمات البرمجية',
+ auditH:'سجل التدقيق المباشر',auditP:'جميع الإجراءات موقّعة',
+ trustL:'ذكاء اصطناعي محوكم في الإنتاج لدى',
+ probC:'المشكلة',probH:'المطورون يستخدمون الذكاء الاصطناعي فعلًا. لا أحد يستطيع إثبات ما الذي تم الوصول إليه.',
+ p1h:'أدوات خارج الإطار',p1p:'تلجأ الفرق إلى أسرع نموذج متاح، خارج أي مسار اعتماد.',
+ p2h:'تغييرات غير قابلة للمراجعة',p2p:'تصل التغييرات دون سجل للنموذج الذي أنتجها أو البيانات المستخدمة.',
+ p3h:'تقارير يدوية',p3p:'تسأل القيادة عن التكلفة والأثر، فتستغرق الإجابة أسبوعًا.',
+ capH:'حوكمة يمكنك رؤيتها، لا وثيقة سياسات.',
+ capP:'كل عنصر تحكم يُطبَّق لحظة إرسال الطلب، ويُسجَّل في مكان يمكنك تدقيقه.',
+ b1h:'التعليمات البرمجية لا تغادر مؤسستك',b2h:'السياسة كتعليمات برمجية',
+ b3h:'فحص الأسرار',b4h:'حدود التكلفة',b5h:'إضافة واحدة لكل بيئة تطوير تستخدمها الفرق.',
+ runH:'ما الذي يحدث بين الطلب والتنفيذ.',
+ runP:'خمس مراحل تُطبَّق على كل طلب، جميعها إلزامية وجميعها مسجّلة.',
+ r1h:'المطور يطلب المساعدة',r2h:'القواعد تُطبَّق قبل التنفيذ',r3h:'النماذج المعتمدة فقط تستقبل الطلب',
+ r4h:'النتيجة قابلة للإسناد',r5h:'يُسجَّل بشكل دائم',
+ whoH:'منصة واحدة، مهمتان مختلفتان تمامًا.',
+ s1h:'لمن يكتبون التعليمات البرمجية',s2h:'لمن يعتمدون القرار',s3h:'لمن يتحملون المسؤولية',
+ mdH:'اعتمد النماذج، وتصل الفرق إليها في كل مكان.',
+ svH:'مبنية لتبقى داخل المملكة.',
+ sv1:'إقامة البيانات داخل المملكة، مفروضة على كل طلب',sv2:'لا تدريب على التعليمات البرمجية الخاصة بك',
+ sv3:'الدخول الموحّد من سدايا وصلاحيات حسب الدور',sv4:'تصدير كامل لسجل التدقيق للمراجعة والامتثال',
+ n1:'أقل وقتًا حتى أول طلب دمج',n2:'من إجراءات الذكاء الاصطناعي مسجّلة',n3:'لتهيئة فريق كامل',
+ ucH:'قيد التشغيل بالفعل عبر المؤسسة.',
+ inH:'تتكامل مع الأدوات التي تستخدمها فرقك.',
+ fqH:'أسئلة وإجابات.',fqB:'تواصل مع فريق المنصة',
+ ctaH:'جاهز لمنح مطوريك ذكاءً اصطناعيًا محوكمًا؟'
+};
+const EN={}; document.querySelectorAll('[data-i18n]').forEach(el=>EN[el.dataset.i18n]=el.innerHTML);
+let ar=false;
+document.getElementById('lang').addEventListener('click',e=>{
+  ar=!ar;
+  const h=document.documentElement;
+  h.lang=ar?'ar':'en'; h.dir=ar?'rtl':'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const v = ar?AR[el.dataset.i18n]:EN[el.dataset.i18n];
+    if(v!==undefined){ el.innerHTML=v; delete el.dataset.split; }
+  });
+  e.currentTarget.textContent=ar?'English':'العربية';
+  e.currentTarget.lang=ar?'en':'ar';
+  build();                       /* horizontal tweens must be rebuilt for the new direction */
+  ScrollTrigger.refresh();
+});
+</script>
+</body>
+</html>

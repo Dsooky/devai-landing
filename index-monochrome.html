@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dev AI · SDAIA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400..700&family=Google+Sans+Code:wght@400;500&family=Playwrite+IT+Moderna:wght@300..400&display=swap" rel="stylesheet">
+<style>
+/* ---- monochrome: light is the default ---- */
+:root{
+  --bg:#fbfbfa; --bg2:#f2f2f0; --line:rgba(15,15,15,.12);
+  --fg:#0e0e0e; --mut:rgba(15,15,15,.56); --mut2:rgba(15,15,15,.38);
+  --acc:#0e0e0e;            /* "accent" = ink, not a hue */
+  --on-acc:#fbfbfa;         /* text on top of accent fills */
+  --acc-rgb:15,15,15;       /* canvas / alpha use */
+  --card:rgba(15,15,15,.02);
+  --r:18px; --max:1240px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+html[data-theme="dark"]{
+  --bg:#0b0b0b; --bg2:#131313; --line:rgba(255,255,255,.13);
+  --fg:#f2f2f0; --mut:rgba(242,242,240,.56); --mut2:rgba(242,242,240,.36);
+  --acc:#f2f2f0;
+  --on-acc:#0b0b0b;
+  --acc-rgb:242,242,240;
+  --card:rgba(255,255,255,.03);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* --- Lenis required styles (the lib ships no CSS of its own) --- */
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
+.lenis.lenis-stopped{overflow:hidden}
+.lenis.lenis-smooth iframe{pointer-events:none}
+
+html,body{background:var(--bg);color:var(--fg)}
+/* overflow-x:clip, NOT hidden. hidden makes body its own scroll container and fights Lenis */
+html{overflow-x:clip}
+body{font-family:"Google Sans Flex","Google Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip;transition:background .6s var(--ease),color .6s var(--ease)}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 28px}
+section{position:relative}
+/* accent script: Playwrite. Decorative, so short phrases only, never body copy.
+   It has no true bold (100–400) and sits small on the em, so it needs a size bump. */
+.serif{font-family:"Playwrite IT Moderna",cursive;font-weight:400;font-style:normal;
+  font-size:.82em;line-height:1.5;letter-spacing:0}
+.mono{font-family:"Google Sans Code",ui-monospace,monospace}
+
+/* ---------- preloader: pixel dissolve ---------- */
+#pre{position:fixed;inset:0;z-index:999;overflow:hidden;background:transparent}
+#grid{position:absolute;inset:0;display:grid}
+#grid i{background:var(--bg);will-change:opacity,transform}
+#pre .mark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;
+  display:flex;align-items:center;gap:12px;font-size:15px;font-weight:600;letter-spacing:-.01em;
+  mix-blend-mode:difference;color:#fff}
+#pre .mark s{text-decoration:none;width:14px;height:14px;background:#fff;border-radius:3px;transform:rotate(45deg)}
+#pre .ctr{position:absolute;right:clamp(20px,4vw,48px);bottom:clamp(18px,3.5vw,40px);z-index:2;
+  font-family:"Google Sans Code",monospace;font-size:12px;letter-spacing:.14em;color:var(--mut2);
+  font-variant-numeric:tabular-nums}
+
+/* ---------- cursor ---------- */
+#cur{position:fixed;top:0;left:0;width:9px;height:9px;border-radius:50%;background:var(--acc);pointer-events:none;z-index:900;will-change:transform}
+#curR{position:fixed;top:0;left:0;width:42px;height:42px;border:1px solid var(--acc);border-radius:50%;pointer-events:none;z-index:899;opacity:.5;will-change:transform}
+@media(hover:none),(pointer:coarse){#cur,#curR{display:none}}
+
+/* ---------- nav ---------- */
+#nav{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:800;display:flex;align-items:center;gap:6px;
+  padding:8px;border:1px solid var(--line);border-radius:99px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);
+  transition:padding .6s var(--ease),gap .6s var(--ease);will-change:transform;contain:paint}
+#nav .brand{display:flex;align-items:center;gap:9px;padding:8px 14px;font-weight:600;font-size:14px;letter-spacing:-.01em;white-space:nowrap;flex:none}
+#nav .brand i{flex:none}
+#nav .brand i{width:16px;height:16px;background:var(--acc);border-radius:4px;display:block;transform:rotate(45deg)}
+#nav .links{display:flex;gap:2px}
+#nav .links a{padding:9px 15px;border-radius:99px;font-size:13px;color:var(--mut);transition:.35s var(--ease);white-space:nowrap}
+#nav .links a:hover{color:var(--fg);background:var(--card)}
+#nav .ico{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;color:var(--mut);cursor:pointer;transition:.35s}
+#nav .ico:hover{color:var(--acc);border-color:var(--acc)}
+#nav .cta{padding:10px 18px;border-radius:99px;background:var(--acc);color:var(--on-acc);font-size:13px;font-weight:600;white-space:nowrap}
+#nav.small .links{display:none}
+@media(max-width:900px){#nav .links{display:none}}
+
+/* ---------- hero ---------- */
+#hero{min-height:100svh;display:flex;align-items:center;padding:130px 0 80px;position:relative;overflow:hidden}
+#net{position:absolute;inset:0;z-index:0;opacity:.85}
+#hero .wrap{position:relative;z-index:2}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;padding:7px 14px;border:1px solid var(--line);border-radius:99px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:32px}
+.eyebrow b{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+h1{font-size:clamp(42px,7.4vw,104px);line-height:1.04;letter-spacing:-.04em;font-weight:600;max-width:15ch}
+/* cursive needs positive tracking, never the tight display tracking of the sans */
+h1 .serif,h2 .serif{letter-spacing:.01em}
+/* NOTE: mask padding must be uniform across ALL words. Padding only on the
+   cursive words makes their boxes taller and knocks them off the shared baseline. */
+.lead{font-size:clamp(15px,1.35vw,19px);color:var(--mut);max-width:52ch;margin:34px 0 40px;line-height:1.6}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{position:relative;display:inline-flex;align-items:center;gap:10px;padding:16px 30px;border-radius:99px;font-size:14px;font-weight:600;overflow:hidden;border:1px solid transparent}
+.btn.p{background:var(--acc);color:var(--on-acc)}
+.btn.g{border-color:var(--line);color:var(--fg)}
+.btn.g:hover{border-color:var(--acc);color:var(--acc)}
+.btn span{position:relative;z-index:2}
+.btn.p::after{content:"";position:absolute;inset:0;background:var(--fg);transform:translateY(101%);transition:transform .55s var(--ease);z-index:1}
+.btn.p:hover::after{transform:translateY(0)}
+.btn.p:hover span{color:var(--bg)}
+.micro{font-size:12.5px;color:var(--mut2);margin-top:22px}
+.micro em{color:var(--acc);font-style:normal}
+
+/* ---------- marquee ---------- */
+.mq{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:18px 0;overflow:hidden;white-space:nowrap;background:var(--bg2)}
+.mq .t{display:inline-block;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut2)}
+.mq .t s{text-decoration:none;color:var(--acc);margin:0 26px}
+
+/* ---------- section shell ---------- */
+.sec{padding:130px 0}
+.tag{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);margin-bottom:22px;display:flex;align-items:center;gap:10px}
+.tag::before{content:"";width:26px;height:1px;background:var(--acc)}
+h2{font-size:clamp(30px,4.6vw,64px);line-height:1.12;letter-spacing:-.03em;font-weight:600;max-width:17ch}
+.sub{color:var(--mut);max-width:54ch;margin-top:22px;font-size:16px;line-height:1.65}
+.head{margin-bottom:70px}
+.head.c{text-align:center}
+.head.c h2,.head.c .sub{margin-left:auto;margin-right:auto}
+.head.c .tag{justify-content:center}
+
+/* ---------- stats ---------- */
+#stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr)}
+.sgrid>div{padding:56px 30px;border-right:1px solid var(--line)}
+.sgrid>div:last-child{border-right:0}
+.sgrid h3{font-size:clamp(38px,5.4vw,76px);font-weight:600;letter-spacing:-.05em;line-height:1}
+.sgrid p{color:var(--mut2);font-size:13px;margin-top:10px}
+
+/* ---------- cards ---------- */
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{position:relative;padding:34px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);overflow:hidden;transition:border-color .5s var(--ease);contain:paint}
+.card::before{content:"";position:absolute;width:420px;height:420px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .5s;
+  background:radial-gradient(circle,color-mix(in srgb,var(--acc) 7%,transparent),transparent 70%);left:var(--mx,50%);top:var(--my,50%);transform:translate(-50%,-50%)}
+.card:hover::before{opacity:1}
+.card:hover{border-color:color-mix(in srgb,var(--acc) 34%,transparent)}
+.card>*{position:relative;z-index:2}
+.card .ic{width:42px;height:42px;border-radius:11px;border:1px solid var(--line);display:grid;place-items:center;margin-bottom:26px;color:var(--acc);font-size:16px;background:var(--bg2)}
+.card h3{font-size:18px;font-weight:600;letter-spacing:-.02em;margin-bottom:11px}
+.card p{color:var(--mut);font-size:14.5px;line-height:1.6}
+.card .n{position:absolute;top:26px;right:30px;font-size:44px;font-weight:600;color:color-mix(in srgb,var(--acc) 15%,transparent);letter-spacing:-.04em;z-index:1}
+.chips{margin-top:22px;display:flex;flex-wrap:wrap;gap:7px}
+.chips i{font-style:normal;font-size:11.5px;padding:5px 12px;border:1px solid var(--line);border-radius:99px;color:var(--mut2)}
+.card.dash{border-style:dashed}
+.arrow{margin-top:22px;font-size:13.5px;font-weight:600;color:var(--acc);display:inline-flex;gap:8px;transition:gap .4s var(--ease)}
+.card:hover .arrow{gap:16px}
+.term{margin-top:20px;background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:11px 14px;font-family:"Google Sans Code",ui-monospace,monospace;font-size:12px;color:var(--acc);min-height:40px;transition:opacity .4s var(--ease),border-color .4s}
+/* idle cards shouldn't show an empty box that reads as a text input */
+.term:empty{opacity:0;border-color:transparent;background:transparent}
+.term b{display:inline-block;width:7px;height:13px;background:var(--acc);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- split panels ---------- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--card)}
+.panel .im{height:260px;overflow:hidden}
+.panel .im img{width:100%;height:100%;object-fit:cover;transform:scale(1.12);transition:transform 1.1s var(--ease);filter:grayscale(1) contrast(1.05)}
+.panel:hover .im img{transform:scale(1)}
+.panel .bd{padding:34px}
+.panel h3{font-size:24px;letter-spacing:-.03em;margin-bottom:12px;font-weight:600}
+.panel p{color:var(--mut);line-height:1.65;font-size:15px}
+
+/* ---------- pinned steps ---------- */
+#flow{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.rail{display:flex;gap:16px}
+.step{flex:0 0 clamp(300px,42vw,520px);border:1px solid var(--line);border-radius:var(--r);padding:40px;background:var(--bg)}
+.step .k{font-size:12px;letter-spacing:.16em;color:var(--acc);margin-bottom:auto}
+.step h3{font-size:clamp(22px,2.6vw,34px);letter-spacing:-.03em;margin:70px 0 14px;font-weight:600}
+.step p{color:var(--mut);line-height:1.6}
+.step .im{margin-top:28px;height:180px;border-radius:12px;overflow:hidden}
+.step .im img{width:100%;height:100%;object-fit:cover;filter:grayscale(1)}
+
+/* ---------- faq ---------- */
+.faq{border-top:1px solid var(--line)}
+.q{border-bottom:1px solid var(--line);padding:30px 0;cursor:pointer}
+.q .t{display:flex;justify-content:space-between;align-items:center;gap:24px}
+.q h3{font-size:clamp(17px,2vw,23px);font-weight:500;letter-spacing:-.02em;transition:color .4s}
+.q:hover h3{color:var(--acc)}
+.q .pm{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;flex:none;transition:.5s var(--ease);color:var(--mut)}
+.q.on .pm{transform:rotate(45deg);background:var(--acc);color:var(--on-acc);border-color:var(--acc)}
+.q .a{max-height:0;overflow:hidden;transition:max-height .65s var(--ease)}
+.q .a p{color:var(--mut);padding-top:16px;max-width:64ch;line-height:1.7;font-size:15px}
+.q.on .a{max-height:260px}
+
+/* ---------- cta ---------- */
+#cta{padding:150px 0;text-align:center;position:relative;overflow:hidden}
+#cta h2{font-size:clamp(38px,7vw,96px);max-width:none;margin:0 auto}
+.glow{position:absolute;left:50%;top:50%;width:900px;height:900px;transform:translate(-50%,-50%);pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--acc) 5%,transparent),transparent 64%)}
+
+/* ---------- footer ---------- */
+footer{background:var(--bg2);border-top:1px solid var(--line);padding:90px 0 0;overflow:hidden}
+.ftop{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px;padding-bottom:70px}
+.fcol h4{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut2);margin-bottom:20px}
+.fcol a{display:block;padding:7px 0;color:var(--mut);font-size:14.5px;position:relative;width:fit-content;transition:color .4s}
+.fcol a::after{content:"";position:absolute;left:0;bottom:6px;width:0;height:1px;background:var(--acc);transition:width .45s var(--ease)}
+.fcol a:hover{color:var(--fg)}
+.fcol a:hover::after{width:100%}
+.fbrand p{color:var(--mut);max-width:34ch;margin:18px 0 26px;line-height:1.6;font-size:14.5px}
+.fmail{display:inline-flex;gap:10px;align-items:center;font-size:17px;letter-spacing:-.01em;border-bottom:1px solid var(--line);padding-bottom:6px}
+.fbot{display:flex;justify-content:space-between;align-items:center;padding:26px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut2);flex-wrap:wrap;gap:14px}
+.fword{font-size:clamp(70px,19vw,300px);font-weight:600;letter-spacing:-.06em;line-height:.72;color:transparent;-webkit-text-stroke:1px var(--line);text-align:center;padding:0 0 12px;user-select:none}
+
+.rv{overflow:hidden}
+.rv>*{display:block}
+@media(max-width:980px){.g4,.g3,.g2,.split,.sgrid,.ftop{grid-template-columns:1fr}.sgrid>div{border-right:0;border-bottom:1px solid var(--line)}.sec{padding:90px 0}}
+</style>
+</head>
+<body>
+
+<div id="cur"></div><div id="curR"></div>
+<div id="pre">
+  <div id="grid"></div>
+  <div class="mark"><s></s> Dev AI</div>
+  <div class="ctr" id="pct">00</div>
+</div>
+
+<!-- ================= NAV ================= -->
+<nav id="nav">
+  <a href="#" class="brand"><i></i> Dev AI</a>
+  <div class="links">
+    <a href="#how">How it works</a>
+    <a href="#agents">Agents</a>
+    <a href="#gov">Governance</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <div class="ico" id="theme">◐</div>
+  <div class="ico">ع</div>
+  <a href="#" class="btn cta mag"><span>Open platform</span></a>
+</nav>
+
+<!-- ================= HERO ================= -->
+<section id="hero">
+  <canvas id="net"></canvas>
+  <div class="wrap">
+    <div class="eyebrow"><b></b> Internal platform · SDAIA</div>
+    <h1 class="sp-t">Ship AI products faster, without <span class="serif">giving up control</span> of your code.</h1>
+    <p class="lead fade">Dev AI gives every team approved models, agents, and tools inside their own IDE, while models, data, and policy stay governed in one place.</p>
+    <div class="row fade">
+      <a href="#" class="btn p mag"><span>Open platform →</span></a>
+      <a href="#gov" class="btn g mag"><span>See how governance works</span></a>
+    </div>
+    <div class="micro fade">Sign in with your SDAIA account · <em>No setup required</em> · Used by 40+ internal teams</div>
+  </div>
+</section>
+
+<div class="mq"><div class="t" id="mq"></div></div>
+
+<!-- ================= STATS ================= -->
+<section id="stats">
+  <div class="sgrid">
+    <div><h3><span class="num" data-to="120">0</span>+</h3><p>Use cases in production</p></div>
+    <div><h3><span class="num" data-to="3">0</span>×</h3><p>Faster delivery vs. baseline</p></div>
+    <div><h3><span class="num" data-to="8000">0</span>+</h3><p>Developer hours saved / month</p></div>
+    <div><h3><span class="num" data-to="25">0</span>+</h3><p>Governed agents ready to use</p></div>
+  </div>
+</section>
+
+<!-- ================= AUDIENCE ================= -->
+<section class="sec" id="who">
+  <div class="wrap">
+    <div class="head c">
+      <div class="tag">Who it's for</div>
+      <h2 class="sp-t">AI adoption stalls for <span class="serif">two different</span> reasons.</h2>
+      <p class="sub fade">Developers wait on approval for tools they could use today. Leadership can't see what's used, what it costs, or whether it's compliant. Dev AI solves both from one platform.</p>
+    </div>
+    <div class="sp-t">
+      <div class="panel rise">
+        <div class="im"><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=70" alt="" loading="lazy" decoding="async"></div>
+        <div class="bd"><h3>If you build</h3><p>Stop switching tools and asking what's allowed. Use pre-approved models, agents, and MCP servers straight from your IDE, with guardrails already applied.</p><div class="arrow">Start building <span>→</span></div></div>
+      </div>
+      <div class="panel rise">
+        <div class="im"><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=70" alt="" loading="lazy" decoding="async"></div>
+        <div class="bd"><h3>If you lead</h3><p>See adoption, cost, and policy compliance across every team in one dashboard, without waiting on anyone to assemble a report.</p><div class="arrow">See the leadership view <span>→</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOW IT WORKS (pinned) ================= -->
+<section id="how">
+  <div class="wrap sec" style="padding-bottom:60px">
+    <div class="head">
+      <div class="tag">How it works</div>
+      <h2 class="sp-t">Three moves to a <span class="serif">governed</span> AI stack.</h2>
+    </div>
+  </div>
+  <div id="flow"><div id="pinwrap" style="padding:70px 28px"><div class="rail" id="rail">
+    <div class="step"><div class="k mono">01 / CURATE</div><h3>Approve once, reuse everywhere.</h3><p>Pick the models, agents, tools, and MCP servers your teams are cleared to pull from the marketplace.</p><div class="chips"><i>Models</i><i>Agents</i><i>Tools</i><i>MCP servers</i></div><div class="im"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&q=70" alt="" loading="lazy" decoding="async"></div></div>
+    <div class="step"><div class="k mono">02 / GOVERN</div><h3>Set the rules where the work happens.</h3><p>Roles, policies, and approvals sit beside the resources they protect. Every decision leaves an audit trail.</p><div class="chips"><i>Roles</i><i>Policies</i><i>Approvals</i><i>Audit trail</i></div><div class="im"><img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=70" alt="" loading="lazy" decoding="async"></div></div>
+    <div class="step"><div class="k mono">03 / OPERATE</div><h3>Know what it does and what it costs.</h3><p>Track adoption, performance, and spend across teams in real time. No manual reporting cycle.</p><div class="chips"><i>Usage</i><i>Performance</i><i>Cost</i><i>Health</i></div><div class="im"><img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=70" alt="" loading="lazy" decoding="async"></div></div>
+  </div></div></div>
+</section>
+
+<!-- ================= AGENTS ================= -->
+<section class="sec" id="agents">
+  <div class="wrap">
+    <div class="head c">
+      <div class="tag">Agents</div>
+      <h2 class="sp-t">Put an agent on the work you <span class="serif">keep repeating.</span></h2>
+      <p class="sub fade">Start with governed agents from the marketplace, or build one for your own workflow and share it with the rest of SDAIA.</p>
+    </div>
+    <div class="grid g4">
+      <div class="card tilt rise"><div class="ic">&lt;/&gt;</div><h3>Developer agent</h3><p>Writes, refactors, and explains code across your stack.</p><div class="term" data-cmd="implement auth middleware"></div></div>
+      <div class="card tilt rise"><div class="ic">◍</div><h3>QA agent</h3><p>Generates tests, reproduces bugs, and catches regressions before release.</p><div class="term" data-cmd="write tests for cart.ts"></div></div>
+      <div class="card tilt rise"><div class="ic">⛨</div><h3>Pen-tester agent</h3><p>Probes for vulnerabilities and flags security issues in your services.</p><div class="term" data-cmd="scan /api for vulnerabilities"></div></div>
+      <div class="card tilt rise dash"><div class="ic">+</div><h3>Build your own</h3><p>Package any task as an agent and publish it to the marketplace.</p><div class="arrow">Build an agent <span>→</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GOVERNANCE ================= -->
+<section class="sec" id="gov">
+  <div class="wrap">
+    <div class="head c">
+      <div class="tag">Governance</div>
+      <h2 class="sp-t">Every answer security <span class="serif">will ask for.</span></h2>
+      <p class="sub fade">Controls for models, tools, and data across development, testing, and security. Controls apply automatically, so teams never slow down to stay compliant.</p>
+    </div>
+    <div class="grid g3">
+      <div class="card tilt rise"><div class="ic">⌂</div><h3>Your code never leaves</h3><p>AI runs inside your own infrastructure. Code and data stay under your control, always.</p></div>
+      <div class="card tilt rise"><div class="ic">≡</div><h3>Every AI change is traceable</h3><p>Each AI-assisted action is logged and reviewable, so you can always answer who changed what, and why.</p></div>
+      <div class="card tilt rise"><div class="ic">◈</div><h3>No model lock-in</h3><p>Approve and switch models centrally as better ones arrive. Teams feel nothing.</p></div>
+      <div class="card tilt rise"><div class="ic">⛨</div><h3>Policy on every request</h3><p>Guardrails decide which models and tools touch which code and data. Enforced, not documented.</p></div>
+      <div class="card tilt rise"><div class="ic">⧉</div><h3>Nothing gets rebuilt twice</h3><p>Share agents, tools, and proven workflows instead of solving the same problem in parallel.</p></div>
+      <div class="card tilt rise"><div class="ic">◧</div><h3>Works in the IDE you use</h3><p>One extension for VS Code, Visual Studio, and JetBrains. Nothing new to learn.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="head"><div class="tag">Before you ask</div><h2 class="sp-t">Questions, <span class="serif">answered.</span></h2></div>
+    <div class="faq">
+      <div class="q"><div class="t"><h3>Do I need approval to start?</h3><div class="pm">+</div></div><div class="a"><p>Placeholder: replace with the real policy. No: sign in with your SDAIA account and you get your organization's approved catalog immediately.</p></div></div>
+      <div class="q"><div class="t"><h3>Which models are available?</h3><div class="pm">+</div></div><div class="a"><p>Placeholder: list the approved model families and who to ask to add one.</p></div></div>
+      <div class="q"><div class="t"><h3>Can my code be used for training?</h3><div class="pm">+</div></div><div class="a"><p>Placeholder: state the data-retention position plainly. This is the highest-anxiety question on the page.</p></div></div>
+      <div class="q"><div class="t"><h3>What does it cost my team?</h3><div class="pm">+</div></div><div class="a"><p>Placeholder: internal chargeback model, or "no cost to your team".</p></div></div>
+      <div class="q"><div class="t"><h3>How do I request a new tool or model?</h3><div class="pm">+</div></div><div class="a"><p>Placeholder: link the request form or channel.</p></div></div>
+      <div class="q"><div class="t"><h3>Who do I contact for support?</h3><div class="pm">+</div></div><div class="a"><p>Placeholder: team channel, mailbox, on-call rotation.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CTA ================= -->
+<section id="cta">
+  <div class="glow"></div>
+  <div class="wrap">
+    <div class="tag" style="justify-content:center">Get started</div>
+    <h2 class="sp-t">One governed platform for your people <span class="serif">and your leadership.</span></h2>
+    <p class="sub fade" style="margin:28px auto 40px;text-align:center">Give your teams the AI they're cleared to use, and give your leadership the visibility they need, in one place.</p>
+    <div class="row fade" style="justify-content:center">
+      <a href="#" class="btn p mag"><span>Open platform →</span></a>
+      <a href="#" class="btn g mag"><span>Talk to the Dev AI team</span></a>
+    </div>
+    <div class="micro fade">Sign in with your SDAIA account · <em>Takes under a minute</em></div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="ftop">
+      <div class="fcol fbrand">
+        <a href="#" class="brand" style="display:flex;align-items:center;gap:9px;font-weight:600;font-size:17px"><i style="width:16px;height:16px;background:var(--acc);border-radius:4px;transform:rotate(45deg);display:block"></i> Dev AI</a>
+        <p>An internal product by SDAIA. Governed AI for the teams building national products.</p>
+        <a href="#" class="fmail">devai@sdaia.gov.sa <span>↗</span></a>
+      </div>
+      <div class="fcol"><h4>Platform</h4><a href="#how">How it works</a><a href="#agents">Agents</a><a href="#gov">Governance</a><a href="#">Marketplace</a><a href="#">IDE extension</a></div>
+      <div class="fcol"><h4>Resources</h4><a href="#">Documentation</a><a href="#">Request a model</a><a href="#">Request a tool</a><a href="#faq">FAQ</a><a href="#">Changelog</a></div>
+      <div class="fcol"><h4>Support</h4><a href="#">Contact the team</a><a href="#">Status</a><a href="#">Security policy</a><a href="#">Report an issue</a></div>
+    </div>
+    <div class="fbot">
+      <span>© 2026 SDAIA · Internal use only</span>
+      <span class="mono" id="clock">Riyadh 00:00:00</span>
+      <span>Privacy · Terms</span>
+    </div>
+  </div>
+  <div class="fword" id="fword">DEV AI</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const R = (a,b)=>a+Math.random()*(b-a);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- smooth scroll ---------- */
+const lenis = new Lenis({lerp:.12, wheelMultiplier:1, smoothWheel:true, syncTouch:false});
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(t=>lenis.raf(t*1000)); gsap.ticker.lagSmoothing(0);
+
+/* ---------- split text into words ---------- */
+document.querySelectorAll('.sp-t').forEach(el=>{
+  const walk = n => {
+    [...n.childNodes].forEach(c=>{
+      if(c.nodeType===3){
+        if(!c.textContent.trim()){ c.replaceWith(document.createTextNode(' ')); return }
+        const f=document.createDocumentFragment();
+        c.textContent.trim().split(/\s+/).forEach(w=>{
+          const o=document.createElement('span');
+          o.style.cssText='display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.28em;margin-right:.26em';
+          const i=document.createElement('span'); i.className='w'; i.style.display='inline-block'; i.textContent=w;
+          o.appendChild(i); f.appendChild(o);
+        });
+        c.replaceWith(f);
+      } else if(c.nodeType===1) walk(c);
+    });
+  };
+  walk(el);
+});
+
+/* ---------- preloader ---------- */
+const pct=document.getElementById('pct');
+
+/* ---- build the pixel wall ---- */
+const gridEl=document.getElementById('grid');
+const CELL=Math.max(34,Math.min(64,Math.round(innerWidth/34)));   // px target
+const COLS=Math.ceil(innerWidth/CELL), ROWS=Math.ceil(innerHeight/CELL);
+gridEl.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
+gridEl.style.gridTemplateRows=`repeat(${ROWS},1fr)`;
+const frag=document.createDocumentFragment();
+for(let i=0;i<COLS*ROWS;i++) frag.appendChild(document.createElement('i'));
+gridEl.appendChild(frag);
+const cells=[...gridEl.children];   // array, not a live HTMLCollection (stagger needs indexable)
+
+let v={n:0};
+const boot=gsap.timeline({paused:true});
+boot
+  .to(v,{n:100,duration:1.15,ease:'power1.inOut',
+    onUpdate:()=>pct.textContent=String(Math.round(v.n)).padStart(2,'0')},0)
+  /* pixels drop out in a random scatter: the dissolve */
+  /* `amount` = total stagger span. (`each` combined with `grid` scales by
+     normalised grid distance, not index, which collapsed this to ~0.04s.) */
+  .to(cells,{opacity:0,duration:.5,ease:'power2.out',
+    stagger:{amount:1.15,from:'random',grid:[ROWS,COLS]}},.85)
+  .to('#pre .mark, #pre .ctr',{opacity:0,duration:.35,ease:'power2.out'},1.0)
+  .add(()=>heroIn(),'-=.55')
+  .set('#pre',{display:'none'});
+window.addEventListener('load',()=>boot.play());
+setTimeout(()=>boot.play(),2500);
+
+function heroIn(){
+  gsap.to('#hero .w',{yPercent:0,duration:1.25,ease:'expo.out',stagger:.028});
+  gsap.to('#hero .eyebrow, #hero .fade',{y:0,opacity:1,duration:1,ease:'expo.out',stagger:.09,delay:.35});
+  gsap.to('#nav',{y:0,opacity:1,duration:1,ease:'expo.out',delay:.15});
+}
+gsap.set('.w',{yPercent:110});
+gsap.set('.fade, .eyebrow',{y:26,opacity:0});
+gsap.set('#nav',{y:-90,opacity:0});
+
+/* ---------- scroll reveals ---------- */
+document.querySelectorAll('section:not(#hero) .sp-t').forEach(el=>{
+  gsap.to(el.querySelectorAll('.w'),{yPercent:0,duration:1.15,ease:'expo.out',stagger:.02,
+    scrollTrigger:{trigger:el,start:'top 88%'}});
+});
+document.querySelectorAll('section:not(#hero) .fade').forEach(el=>{
+  gsap.to(el,{y:0,opacity:1,duration:1,ease:'expo.out',scrollTrigger:{trigger:el,start:'top 90%'}});
+});
+gsap.utils.toArray('.rise').forEach((el,i)=>{
+  gsap.from(el,{y:60,opacity:0,duration:1.1,ease:'expo.out',delay:(i%4)*.07,
+    scrollTrigger:{trigger:el,start:'top 90%'}});
+});
+
+/* ---------- nav shrink ---------- */
+ScrollTrigger.create({start:'top -140',onToggle:s=>document.getElementById('nav').classList.toggle('small',s.isActive)});
+
+/* ---------- stat counters ---------- */
+document.querySelectorAll('.num').forEach(el=>{
+  const to=+el.dataset.to, o={n:0};
+  ScrollTrigger.create({trigger:el,start:'top 88%',once:true,onEnter:()=>
+    gsap.to(o,{n:to,duration:2,ease:'power3.out',onUpdate:()=>el.textContent=Math.round(o.n).toLocaleString()})});
+});
+
+/* ---------- pinned horizontal rail ---------- */
+const rail=document.getElementById('rail');
+if(innerWidth>980){
+  const dist = ()=> rail.scrollWidth - innerWidth + 120;
+  gsap.to(rail,{x:()=>-dist(),ease:'none',
+    scrollTrigger:{trigger:'#flow',start:'top top',end:()=>'+='+dist(),
+      pin:true,pinSpacing:true,anticipatePin:1,scrub:true,invalidateOnRefresh:true}});
+}
+
+/* ---------- footer wordmark parallax ---------- */
+gsap.from('#fword',{yPercent:40,opacity:0,ease:'none',scrollTrigger:{trigger:'footer',start:'top bottom',end:'bottom bottom',scrub:1}});
+
+/* ---------- card spotlight + tilt ---------- */
+document.querySelectorAll('.card').forEach(c=>{
+  let pend=null, raf=0;
+  const rotY=gsap.quickTo(c,'rotateY',{duration:.6,ease:'power3'});
+  const rotX=gsap.quickTo(c,'rotateX',{duration:.6,ease:'power3'});
+  gsap.set(c,{transformPerspective:900});
+  c.addEventListener('mousemove',e=>{
+    pend=e;
+    if(raf) return;                              // one write per frame, not per event
+    raf=requestAnimationFrame(()=>{
+      raf=0;
+      const r=c.getBoundingClientRect(), x=pend.clientX-r.left, y=pend.clientY-r.top;
+      c.style.setProperty('--mx',x+'px'); c.style.setProperty('--my',y+'px');
+      if(c.classList.contains('tilt')&&!reduce){ rotY((x/r.width-.5)*7); rotX(-(y/r.height-.5)*7); }
+    });
+  });
+  c.addEventListener('mouseleave',()=>gsap.to(c,{rotateX:0,rotateY:0,duration:.9,ease:'elastic.out(1,.5)'}));
+});
+
+/* ---------- magnetic buttons ---------- */
+document.querySelectorAll('.mag').forEach(b=>{
+  b.addEventListener('mousemove',e=>{
+    const r=b.getBoundingClientRect();
+    gsap.to(b,{x:(e.clientX-r.left-r.width/2)*.3,y:(e.clientY-r.top-r.height/2)*.4,duration:.6,ease:'power3.out'});
+  });
+  b.addEventListener('mouseleave',()=>gsap.to(b,{x:0,y:0,duration:.9,ease:'elastic.out(1,.4)'}));
+});
+
+/* ---------- cursor ---------- */
+const cur=document.getElementById('cur'), curR=document.getElementById('curR');
+const cx=gsap.quickTo(cur,'x',{duration:.25,ease:'power3'}), cy=gsap.quickTo(cur,'y',{duration:.25,ease:'power3'});
+const rx=gsap.quickTo(curR,'x',{duration:.5,ease:'power3'}), ry=gsap.quickTo(curR,'y',{duration:.5,ease:'power3'});
+let mx=innerWidth/2,my=innerHeight/2;
+addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cx(mx-4.5);cy(my-4.5);rx(mx-21);ry(my-21)});
+document.querySelectorAll('a,.q,.ico,.card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>gsap.to(curR,{scale:1.9,opacity:.22,duration:.4}));
+  el.addEventListener('mouseleave',()=>gsap.to(curR,{scale:1,opacity:.5,duration:.4}));
+});
+
+/* ---------- FAQ ---------- */
+document.querySelectorAll('.q').forEach(q=>q.addEventListener('click',()=>{
+  const open=q.classList.contains('on');
+  document.querySelectorAll('.q').forEach(o=>o.classList.remove('on'));
+  if(!open) q.classList.add('on');
+}));
+
+/* ---------- terminal typing (one card at a time) ---------- */
+const terms=[...document.querySelectorAll('.term')];
+terms.forEach(t=>t.innerHTML='');
+let ti=0;
+function typeLoop(){
+  const t=terms[ti%terms.length], cmd=t.dataset.cmd;
+  terms.forEach(x=>x.innerHTML='');
+  let i=0;
+  const iv=setInterval(()=>{
+    t.innerHTML='› '+cmd.slice(0,++i)+'<b></b>';
+    if(i>=cmd.length){clearInterval(iv); setTimeout(()=>{ti++;typeLoop()},1900)}
+  },48);
+}
+if(terms.length) typeLoop();
+
+/* ---------- marquee ---------- */
+const words=['Governed by default','Runs in your infrastructure','Full audit trail','No model lock-in','Works in your IDE','Built at SDAIA'];
+const line=words.map(w=>w+'<s>◆</s>').join('');
+const mqEl=document.getElementById('mq'); mqEl.innerHTML=line+line;
+gsap.to(mqEl,{xPercent:-50,duration:34,ease:'none',repeat:-1});
+
+/* ---------- theme ---------- */
+let ACC='15,15,15';
+const syncAcc=()=>ACC=getComputedStyle(document.documentElement).getPropertyValue('--acc-rgb').trim()||'15,15,15';
+syncAcc();
+document.getElementById('theme').addEventListener('click',()=>{
+  const h=document.documentElement;
+  h.dataset.theme = h.dataset.theme==='dark' ? 'light' : 'dark';
+  syncAcc();
+});
+
+/* ---------- clock ---------- */
+setInterval(()=>{
+  const d=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Riyadh'}));
+  document.getElementById('clock').textContent='Riyadh '+[d.getHours(),d.getMinutes(),d.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+},1000);
+
+/* ---------- hero node network (canvas) ---------- */
+const cv=document.getElementById('net'), ctx=cv.getContext('2d');
+let W,H,DPR,nodes=[];
+const LABELS=['Agents','Models','MCP servers','APIs','Tools','IDEs','Skills','Policies','Audit'];
+let heroVisible=true;
+new IntersectionObserver(e=>{
+  heroVisible=e[0].isIntersecting;
+  if(heroVisible&&!reduce) requestAnimationFrame(draw);
+},{threshold:0}).observe(document.getElementById('hero'));
+
+function build(){
+  DPR=Math.min(devicePixelRatio||1,1.5);
+  W=cv.width=innerWidth*DPR; H=cv.height=cv.offsetHeight*DPR;
+  cv.style.width='100%';
+  nodes=LABELS.map((l,i)=>{
+    const a=(i/LABELS.length)*Math.PI*2;
+    return{l,x:W*.5+Math.cos(a)*R(W*.22,W*.42),y:H*.5+Math.sin(a)*R(H*.22,H*.42),
+           vx:R(-.16,.16)*DPR,vy:R(-.16,.16)*DPR,r:R(1.6,3)*DPR};
+  });
+}
+build(); addEventListener('resize',()=>{build();ScrollTrigger.refresh()});
+let mouse={x:-9999,y:-9999};
+addEventListener('mousemove',e=>{mouse.x=e.clientX*DPR;mouse.y=e.clientY*DPR});
+
+function draw(){
+  if(!heroVisible) return;                    // stop burning frames off-screen
+  const acc = ACC;                            // cached; refreshed on theme change
+  ctx.clearRect(0,0,W,H);
+  nodes.forEach(n=>{
+    n.x+=n.vx; n.y+=n.vy;
+    if(n.x<0||n.x>W)n.vx*=-1; if(n.y<0||n.y>H)n.vy*=-1;
+    const dx=mouse.x-n.x, dy=mouse.y-n.y, d=Math.hypot(dx,dy);
+    if(d<260*DPR){n.x-=dx/d*1.1;n.y-=dy/d*1.1}
+  });
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+    const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y),lim=W*.28;
+    if(d<lim){
+      ctx.strokeStyle=`rgba(${acc},${(1-d/lim)*.30})`;
+      ctx.lineWidth=DPR*.7; ctx.setLineDash([4*DPR,5*DPR]);
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    }
+  }
+  ctx.setLineDash([]);
+  nodes.forEach(n=>{
+    ctx.fillStyle=`rgba(${acc},.85)`;
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,7);ctx.fill();
+    ctx.fillStyle=`rgba(${acc},.34)`;
+    ctx.font=`${11*DPR}px "Google Sans Code",ui-monospace,monospace`;
+    ctx.fillText(n.l,n.x+9*DPR,n.y-8*DPR);
+  });
+  requestAnimationFrame(draw);
+}
+if(!reduce) draw();
+
+/* smooth anchors */
+document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(a=>
+  a.addEventListener('click',e=>{e.preventDefault();lenis.scrollTo(a.getAttribute('href'),{offset:-20})}));
+</script>
+</body>
+</html>
