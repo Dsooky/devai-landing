@@ -80,9 +80,10 @@ main,header,footer{position:relative;z-index:2}
 
 /* ================= FLOATING PILL NAV ================= */
 /* sticky, not fixed: the stamp panel expands above it and must push it down */
-.navwrap{position:sticky;top:10px;z-index:50;display:flex;justify-content:center;
+header{position:sticky;top:0;z-index:50;pointer-events:none}
+.navwrap{display:flex;justify-content:center;
   padding:10px 24px 0;pointer-events:none}
-.nav{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;max-width:900px;height:56px;
+.nav{position:relative;pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;max-width:900px;height:56px;
   padding:0 8px 0 16px;border-radius:var(--r16);border:1px solid var(--border);
   background:color-mix(in srgb,var(--card) 72%,transparent);backdrop-filter:blur(12px)}
 @supports not (backdrop-filter:blur(12px)){.nav{background:var(--card)}}
@@ -96,7 +97,16 @@ main,header,footer{position:relative;z-index:2}
 .ibtn{height:38px;min-width:38px;padding:0 11px;border:1px solid var(--border);background:transparent;
   border-radius:10px;color:var(--paragraph);font:inherit;font-size:13.5px;font-weight:500;cursor:pointer;transition:.2s}
 .ibtn:hover{border-color:var(--primary);color:var(--primary)}
-.burger{display:none}
+.burger{display:none;place-items:center;padding:0;width:42px}
+.burger .bars,.burger .bars::before,.burger .bars::after{display:block;width:18px;height:2px;border-radius:2px;
+  background:currentColor;transition:transform .25s,background .25s}
+.burger .bars{position:relative}
+.burger .bars::before,.burger .bars::after{content:"";position:absolute;inset-inline-start:0}
+.burger .bars::before{top:-6px}.burger .bars::after{top:6px}
+.burger[aria-expanded="true"] .bars{background:transparent}
+.burger[aria-expanded="true"] .bars::before{transform:translateY(6px) rotate(45deg)}
+.burger[aria-expanded="true"] .bars::after{transform:translateY(-6px) rotate(-45deg)}
+.nav .links .mcta{display:none}
 
 /* ================= BUTTONS ================= */
 .btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;
@@ -334,13 +344,25 @@ footer{padding-top:0}
   .numbers .cell:last-child{border-bottom:0}
   .scard{grid-template-columns:1fr}
   .faqrail{position:static}
+  .navwrap{padding:8px 16px 0}
+  .nav{gap:6px;padding:0 6px 0 14px}
+  .nav .act{margin-inline-start:auto}
   .nav .links{display:none}
-  .nav .links.open{display:flex;flex-direction:column;position:absolute;inset-inline:0;top:74px;
-    background:var(--card);border:1px solid var(--border);border-radius:var(--r16);padding:10px;gap:2px;margin:0}
+  .nav .links.open{display:flex;flex-direction:column;position:absolute;inset-inline:0;top:calc(100% + 8px);
+    background:var(--card);border:1px solid var(--border);border-radius:var(--r16);padding:8px;gap:2px;margin:0;
+    box-shadow:0 18px 40px rgba(0,0,0,.28);max-height:calc(100vh - 120px);overflow-y:auto;animation:menuIn .22s ease-out}
+  .nav .links.open a{display:flex;align-items:center;min-height:48px;padding:0 14px;font-size:16px}
   .burger{display:grid}
   .cbody{grid-template-columns:1fr}.cside{display:none}
   .fgrid{grid-template-columns:1fr 1fr}
   #hero{padding-top:40px}
+}
+@keyframes menuIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.nav .links.open{animation:none}.burger .bars,.burger .bars::before,.burger .bars::after{transition:none}}
+@media(max-width:520px){
+  .nav .act>.btn{display:none}
+  .nav .links.open .mcta{display:flex;justify-content:center;margin-top:6px;min-height:48px;color:var(--on-primary)}
+  .nav .links.open .mcta:hover{background:var(--primary-strong);color:var(--on-primary)}
 }
 @media(max-width:640px){.fgrid{grid-template-columns:1fr}.tchips span{border:0}}
 
@@ -465,9 +487,10 @@ footer{padding-top:0}
       <a href="#run" data-i18n="nav2">How it works</a>
       <a href="#models" data-i18n="nav3">Models</a>
       <a href="#faq" data-i18n="nav4">FAQ</a>
+      <a href="#" class="btn btn-primary sm mcta" data-i18n="cta">Open platform</a>
     </nav>
     <div class="act">
-      <button class="ibtn burger" id="burger" aria-expanded="false" aria-controls="links" aria-label="Open menu">☰</button>
+      <button class="ibtn burger" id="burger" aria-expanded="false" aria-controls="links" aria-label="Open menu"><span class="bars" aria-hidden="true"></span></button>
       <a href="#" class="btn btn-primary sm" data-i18n="cta">Open platform</a>
     </div>
   </div></div>
@@ -842,6 +865,21 @@ footer{padding-top:0}
   </div>
 </div></footer>
 
+<script>
+/* ---------- menu (own block: keeps working if the GSAP CDN fails) ---------- */
+(()=>{
+  const burger=document.getElementById('burger'), links=document.getElementById('links');
+  const isAr=()=>document.documentElement.lang==='ar';
+  const set=o=>{links.classList.toggle('open',o); burger.setAttribute('aria-expanded',String(o));
+    burger.setAttribute('aria-label',o?(isAr()?'إغلاق القائمة':'Close menu'):(isAr()?'فتح القائمة':'Open menu'));};
+  const isOpen=()=>links.classList.contains('open');
+  burger.addEventListener('click',()=>set(!isOpen()));
+  links.addEventListener('click',e=>{if(e.target.closest('a')) set(false);});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen()){set(false);burger.focus();}});
+  document.addEventListener('click',e=>{if(isOpen()&&!e.target.closest('#nav')) set(false);});
+  matchMedia('(min-width:1025px)').addEventListener('change',e=>{if(e.matches) set(false);});
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
@@ -1050,10 +1088,6 @@ document.querySelectorAll('.qa button').forEach(btn=>btn.addEventListener('click
   gsap.to(ans,{height:open?0:'auto',duration:.35,ease:'power2.out'});
 }));
 
-/* ---------- menu ---------- */
-const burger=document.getElementById('burger'), links=document.getElementById('links');
-burger.addEventListener('click',()=>{const o=links.classList.toggle('open');
-  burger.setAttribute('aria-expanded',String(o)); burger.setAttribute('aria-label',o?'Close menu':'Open menu');});
 
 /* ---------- theme ---------- */
 document.getElementById('theme').addEventListener('click',e=>{
