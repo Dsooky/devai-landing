@@ -81,7 +81,34 @@ section{position:relative}
 #nav .ico:hover{color:var(--acc);border-color:var(--acc)}
 #nav .cta{padding:10px 18px;border-radius:99px;background:var(--acc);color:var(--on-acc);font-size:13px;font-weight:600;white-space:nowrap}
 #nav.small .links{display:none}
-@media(max-width:900px){#nav .links{display:none}}
+#nav .burger{display:none;border:1px solid var(--line);background:none;color:var(--fg);padding:0;font:inherit}
+#nav .burger .bars,#nav .burger .bars::before,#nav .burger .bars::after{display:block;width:16px;height:1.5px;border-radius:2px;
+  background:currentColor;transition:transform .3s var(--ease),background .3s}
+#nav .burger .bars{position:relative}
+#nav .burger .bars::before,#nav .burger .bars::after{content:"";position:absolute;left:0}
+#nav .burger .bars::before{top:-5px}#nav .burger .bars::after{top:5px}
+#nav .burger[aria-expanded="true"] .bars{background:transparent}
+#nav .burger[aria-expanded="true"] .bars::before{transform:translateY(5px) rotate(45deg)}
+#nav .burger[aria-expanded="true"] .bars::after{transform:translateY(-5px) rotate(-45deg)}
+#nav .links .mcta{display:none}
+@media(max-width:900px){
+  #nav{top:12px;width:calc(100% - 32px);max-width:560px;gap:6px;padding:6px;contain:none}
+  #nav .brand{margin-right:auto;padding:8px 10px}
+  #nav .links{display:none}
+  #nav .burger{display:grid}
+  #nav .links.open,#nav.small .links.open{display:flex;flex-direction:column;position:absolute;left:0;right:0;top:calc(100% + 8px);
+    padding:8px;gap:2px;border:1px solid var(--line);border-radius:22px;background:var(--bg);
+    box-shadow:0 20px 50px rgba(0,0,0,.18);max-height:calc(100vh - 100px);overflow-y:auto;animation:menuIn .25s var(--ease)}
+  #nav .links.open a{display:flex;align-items:center;min-height:48px;padding:0 16px;font-size:16px;color:var(--fg)}
+  #nav .links.open .mcta{display:none}
+}
+@media(max-width:520px){
+  #nav>.cta{display:none}
+  #nav .links.open .mcta{display:flex;justify-content:center;margin-top:6px;background:var(--acc);color:var(--on-acc);font-weight:600}
+  #nav .links.open .mcta:hover{background:var(--acc);opacity:.9}
+}
+@keyframes menuIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#nav .links.open{animation:none}#nav .burger .bars,#nav .burger .bars::before,#nav .burger .bars::after{transition:none}}
 
 /* ---------- hero ---------- */
 #hero{min-height:100svh;display:flex;align-items:center;padding:130px 0 80px;position:relative;overflow:hidden}
@@ -226,15 +253,17 @@ footer{background:var(--bg2);border-top:1px solid var(--line);padding:90px 0 0;o
 <!-- ================= NAV ================= -->
 <nav id="nav">
   <a href="#" class="brand"><i></i> Dev AI</a>
-  <div class="links">
+  <div class="links" id="links" data-lenis-prevent>
     <a href="#how">How it works</a>
     <a href="#agents">Agents</a>
     <a href="#gov">Governance</a>
     <a href="#faq">FAQ</a>
+    <a href="#" class="mcta">Open platform</a>
   </div>
   <div class="ico" id="theme">◐</div>
   <div class="ico">ع</div>
   <a href="#" class="btn cta mag"><span>Open platform</span></a>
+  <button class="ico burger" id="burger" aria-expanded="false" aria-controls="links" aria-label="Open menu"><span class="bars" aria-hidden="true"></span></button>
 </nav>
 
 <!-- ================= HERO ================= -->
@@ -388,6 +417,20 @@ footer{background:var(--bg2);border-top:1px solid var(--line);padding:90px 0 0;o
   <div class="fword" id="fword">DEV AI</div>
 </footer>
 
+<script>
+/* ---------- menu (own block: keeps working if the CDN scripts fail) ---------- */
+(()=>{
+  const burger=document.getElementById('burger'), links=document.getElementById('links');
+  const set=o=>{links.classList.toggle('open',o); burger.setAttribute('aria-expanded',String(o));
+    burger.setAttribute('aria-label',o?'Close menu':'Open menu');};
+  const isOpen=()=>links.classList.contains('open');
+  burger.addEventListener('click',()=>set(!isOpen()));
+  links.addEventListener('click',e=>{if(e.target.closest('a')) set(false);});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen()){set(false);burger.focus();}});
+  document.addEventListener('click',e=>{if(isOpen()&&!e.target.closest('#nav')) set(false);});
+  matchMedia('(min-width:901px)').addEventListener('change',e=>{if(e.matches) set(false);});
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
